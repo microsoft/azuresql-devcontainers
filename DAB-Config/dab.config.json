@@ -1,0 +1,50 @@
+{
+    "$schema": "https://github.com/Azure/data-api-builder/releases/download/v0.9.7/dab.draft.schema.json",
+    "data-source": {
+        "database-type": "mssql",
+        "connection-string": "@env('CONN_STRING')"
+    },
+    "mssql": {
+        "set-session-context": true
+    },
+    "runtime": {
+        "rest": {
+            "enabled": true,
+            "path": "/api"
+        },
+        "graphql": {
+            "allow-introspection": true,
+            "enabled": true,
+            "path": "/graphql"
+        },
+        "host": {
+            "mode": "development",
+            "authentication": {
+                "provider": "Simulator"
+            }
+        }
+    },
+    "entities": {
+        "Author": {
+            "source": "dbo.authors",
+            "permissions": [
+                {
+                    "role": "anonymous",
+                    "actions": ["*"]
+                }
+            ]
+        },
+        "Book": {
+            "source": {
+                "type": "table",
+                "object": "dbo.books"
+            },
+            "permissions": [
+                {
+                    "role": "anonymous",
+                    "actions": ["*"]
+                }
+            ]
+        }
+    }
+}
