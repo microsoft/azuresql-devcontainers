@@ -6,8 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        # Update 'VARIANT' to pick a version of .NET: 3.1-focal, 6.0-focal
-        VARIANT: "6.0-focal"
+        # Update 'VARIANT' to pick a version of .NET: 7.0-bullseye, 8.0-jammy
+        VARIANT: "8.0-jammy"
         # Optional version of Node.js
         NODE_VERSION: "none"
 
@@ -27,6 +27,7 @@ services:
 
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
     hostname: SQL-Library
     container_name: SQL-Library
     restart: unless-stopped
