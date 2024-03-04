@@ -4,7 +4,7 @@
 	"name": "Data API builder and SQL Server",
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "app",
-	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+	"workspaceFolder": "/workspace",
 
 	// Configure tool-specific properties.
 	"customizations": {
@@ -12,7 +12,6 @@
 		"vscode": {
 			// Set *default* container specific settings.json values on container create.
 			"settings": { 
-				"workbench.colorTheme": "Atom One Dark",
 				"mssql.connections": [
 					{
 						"server": "localhost,1433",
@@ -31,14 +30,10 @@
 			"extensions": [
 				"ms-dotnettools.csharp",
 				"ms-mssql.mssql",
-				"github.copilot",
-				"github.vscode-pull-request-github",
-				"github.codespaces",
 				"ms-vscode.vscode-node-azure-pack",
 				"ms-azuretools.vscode-docker",
-				"github.vscode-github-actions",
-				"hashicorp.terraform",
-				"akamud.vscode-theme-onedark",
+				"github.copilot",
+				"github.codespaces",
 				"humao.rest-client"
 			]
 		}
@@ -66,15 +61,10 @@
 			"installUsingPython": true,
 			"version": "latest"
 		},
-		"ghcr.io/devcontainers/features/github-cli:1": {
-			"installDirectlyFromGitHubRelease": true,
-			"version": "latest"
-		},
 		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
 			"version": "latest"
 		}
 	}
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"
-
 }

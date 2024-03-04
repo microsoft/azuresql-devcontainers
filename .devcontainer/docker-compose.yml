@@ -27,7 +27,6 @@ services:
 
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    platform: linux/amd64
     hostname: SQL-Library
     container_name: SQL-Library
     restart: unless-stopped
