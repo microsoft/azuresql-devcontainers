@@ -33,8 +33,7 @@
 				"ms-vscode.vscode-node-azure-pack",
 				"ms-azuretools.vscode-docker",
 				"github.copilot",
-				"github.codespaces",
-				"humao.rest-client"
+				"github.codespaces"
 			]
 		}
 	},

@@ -1,6 +1,6 @@
-# DAB calls to HTTP endpoints
+# Testing Data API builder calls to HTTP endpoints
 
-# Checking DAB health
+# Checking DAB health endpoint
 curl -v http://localhost:5000
 
 # Checking DAB API for Books and Authors endpoints
@@ -8,8 +8,8 @@ curl -s http://localhost:5000/api/Book | jq
 curl -s http://localhost:5000/api/Author | jq
 
 # Checking DAB API with query parameters
-curl -s http://localhost:5000/api/Book?$first=2 | jq '.value[] | {id, title}'
-curl -s http://localhost:5000/api/Author | jq '.value[1] | {id, first_name, last_name}'
+curl -s "http://localhost:5000/api/Book?\$filter=title%20eq%20'Foundation'" | jq
+curl -s http://localhost:5000/api/Author | jq '.value[0] | {id, first_name, last_name}'
 
 # Checking DAB GraphQL
 curl -X POST \
