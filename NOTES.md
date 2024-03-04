@@ -1,14 +1,3 @@
-
-# Data API builder and MS SQL (dab-mssql)
-
-Try out Data API builder with SQL Server. Includes .NET 6, DAB CLI, extensions, dependencies and an a SQL container initialized with the Library database that can be used to try out Data API builder.
-
-## Options
-
-| Options Id | Description | Type | Default Value |
-|-----|-----|-----|-----|
-| imageVariant | .NET version: | string | 6.0-focal |
-
 This template references an image that was [pre-built](https://containers.dev/implementors/reference/#prebuilding) to automatically include needed devcontainer.json metadata.
 
 * **Image**: mcr.microsoft.com/devcontainers/dotnet ([source](https://github.com/devcontainers/images/tree/main/src/dotnet))
@@ -48,7 +37,3 @@ By default, web frameworks and tools often only listen to localhost inside the c
 ```
 
 The `ports` property in `docker-compose.yml` [publishes](https://docs.docker.com/config/containers/container-networking/#published-ports) rather than forwards the port. This will not work in a cloud environment like Codespaces and applications need to listen to `*` or `0.0.0.0` for the application to be accessible externally. Fortunately the `forwardPorts` property does not have this limitation.
-
----
-
-_Note: This file was auto-generated from the [devcontainer-template.json](https://github.com/devcontainers/templates/blob/main/src/dotnet-mssql/devcontainer-template.json).  Add additional notes to a `NOTES.md`._
