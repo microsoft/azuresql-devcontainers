@@ -16,8 +16,8 @@ jobs:
         uses: devcontainers/action@v1
         with:
           publish-templates: "true"
-          # base-path-to-templates: "./src"
-          # generate-docs: "true"
+          base-path-to-templates: "./src"
+          generate-docs: "true"
           
       - name: Create a PR for Documentation
         id: push_image_info
