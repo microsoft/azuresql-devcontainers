@@ -4,6 +4,9 @@ on:
 
 jobs:
   deploy:
+    permissions:
+      contents: write
+      pull-requests: write
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
