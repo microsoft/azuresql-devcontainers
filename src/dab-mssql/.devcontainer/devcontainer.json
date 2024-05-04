@@ -51,7 +51,7 @@
 	"postCreateCommand": "bash .devcontainer/sql/postCreateCommand.sh 'P@ssw0rd!' './bin/Debug/' './.devcontainer/sql/'",
 
 	// Post start commands to run after the container is started.
-	"postStartCommand": "cd DAB-Config && dab start --config=dab.config.json",
+	// "postStartCommand": "cd DAB-Config && dab start --config=dab.config.json",
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {

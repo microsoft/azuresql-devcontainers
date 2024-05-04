@@ -4,9 +4,9 @@ on:
 
 jobs:
   deploy:
-    permissions:
-      contents: write
-      pull-requests: write
+    # permissions:
+    #   contents: write
+    #   pull-requests: write
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
@@ -31,8 +31,8 @@ jobs:
           echo "Start."
 
           # Configure git and Push updates
-          git config --global user.email github-actions@github.com
-          git config --global user.name github-actions
+          git config --global user.email github-actions[bot]@users.noreply.github.com
+          git config --global user.name github-actions[bot]
           git config pull.rebase false
 
           branch=automated-documentation-update-$GITHUB_RUN_ID
@@ -46,12 +46,5 @@ jobs:
           # Push
           if [ "$NO_UPDATES" != "true" ] ; then
               git push origin "$branch"
-              gh api \
-                --method POST \
-                -H "Accept: application/vnd.github+json" \
-                /repos/${GITHUB_REPOSITORY}/pulls \
-                -f title="$message" \
-              -f body="$message" \
-              -f head="$branch" \
-              -f base='main'
+              gh pr create --title "$message" --body "$message"
           fi

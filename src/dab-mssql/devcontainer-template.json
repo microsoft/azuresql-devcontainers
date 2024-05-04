@@ -4,7 +4,7 @@
     "name": "Data API builder and SQL Server",
     "description": "Try out Data API builder with SQL Server. Includes .NET 6, DAB CLI, extensions, dependencies and an a SQL container initialized with the Library database that can be used to try out Data API builder.",
     "documentationURL": "https://github.com/microsoft/dab-mssql/tree/main/src/dab-mssql",
-    "publisher": "Azure SQL Developer Experience Maintainers",
+    "publisher": "Azure SQL Developer Experience Team",
     "licenseURL": "https://github.com/devcontainers/templates/blob/main/LICENSE",
     "options": {
         "imageVariant": {

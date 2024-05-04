@@ -1,13 +1,13 @@
 # [Choice] .NET version: 6.0-focal, 7.0-bullseye
-ARG VARIANT="6.0-focal"
-FROM mcr.microsoft.com/devcontainers/dotnet:0-${VARIANT}
+# ARG VARIANT="6.0-focal"
+FROM mcr.microsoft.com/devcontainers/dotnet:0-${templateOption:imageVariant}
 
 # Add .NET global tools path
 ENV PATH $PATH:/home/vscode/.dotnet:/home/vscode/.dotnet/tools
 
-# [Choice] Node.js version: none, lts/*, 18, 16, 14
-ARG NODE_VERSION="none"
-RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/local/share/nvm/nvm.sh && nvm install ${NODE_VERSION} 2>&1"; fi
+# # [Choice] Node.js version: none, lts/*, 18, 16, 14
+# ARG NODE_VERSION="none"
+# RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/local/share/nvm/nvm.sh && nvm install ${NODE_VERSION} 2>&1"; fi
 
 # [Optional] Uncomment this section to install additional OS packages.
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \

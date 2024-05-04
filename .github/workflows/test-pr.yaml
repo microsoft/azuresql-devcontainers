@@ -12,8 +12,7 @@ jobs:
         id: filter
         with:
           filters: |
-            color: ./**/color/**
-            hello: ./**/hello/**
+            dab-mssql: ./**/dab-mssql/**
 
   test:
     needs: [detect-changes]

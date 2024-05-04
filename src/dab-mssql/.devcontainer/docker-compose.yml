@@ -5,11 +5,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        # Update 'VARIANT' to pick a version of .NET: 6.0-focal, 7.0-bullseye
-        VARIANT: "6.0-focal"
-        # Optional version of Node.js
-        NODE_VERSION: "none"
+      # args:
+      #   # Update 'VARIANT' to pick a version of .NET: 6.0-focal, 7.0-bullseye
+      #   VARIANT: "6.0-focal"
+      #   # Optional version of Node.js
+      #   NODE_VERSION: "none"
 
     volumes:
       - ..:/workspace:cached
