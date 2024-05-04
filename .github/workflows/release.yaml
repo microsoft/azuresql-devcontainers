@@ -4,9 +4,9 @@ on:
 
 jobs:
   deploy:
-    # permissions:
-    #   contents: write
-    #   pull-requests: write
+    permissions:
+      contents: write
+      pull-requests: write
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
@@ -16,8 +16,8 @@ jobs:
         uses: devcontainers/action@v1
         with:
           publish-templates: "true"
-          base-path-to-templates: "./src"
-          generate-docs: "true"
+          # base-path-to-templates: "./src"
+          # generate-docs: "true"
           
       - name: Create a PR for Documentation
         id: push_image_info
