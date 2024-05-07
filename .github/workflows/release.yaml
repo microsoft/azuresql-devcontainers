@@ -16,6 +16,8 @@ jobs:
         uses: devcontainers/action@v1
         with:
           publish-templates: "true"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
       - name: Create a PR for Documentation
         id: push_image_info
