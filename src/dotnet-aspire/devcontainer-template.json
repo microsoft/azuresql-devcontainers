@@ -1,5 +1,5 @@
 {
-    "id": "dotnet-aspire-azure-sql",
+    "id": "dotnet-aspire",
     "version": "1.0.0",
     "name": ".NET with Aspire and Azure SQL",
     "description": "A development environment for .NET Aspire and Azure SQL, enabling streamlined local development and testing.",
