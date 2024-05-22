@@ -56,11 +56,11 @@
           "lib/netcoreapp2.0/_._": {}
         }
       },
-      "Microsoft.Data.SqlClient/3.0.0": {
+      "Microsoft.Data.SqlClient/3.1.5": {
         "type": "package",
         "dependencies": {
           "Azure.Identity": "1.3.0",
-          "Microsoft.Data.SqlClient.SNI.runtime": "3.0.0",
+          "Microsoft.Data.SqlClient.SNI.runtime": "[3.0.1]",
           "Microsoft.Identity.Client": "4.22.0",
           "Microsoft.IdentityModel.JsonWebTokens": "6.8.0",
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "6.8.0",
@@ -93,7 +93,7 @@
           }
         }
       },
-      "Microsoft.Data.SqlClient.SNI.runtime/3.0.0": {
+      "Microsoft.Data.SqlClient.SNI.runtime/3.0.1": {
         "type": "package",
         "runtimeTargets": {
           "runtimes/win-arm/native/Microsoft.Data.SqlClient.SNI.dll": {
@@ -596,10 +596,10 @@
         "version.txt"
       ]
     },
-    "Microsoft.Data.SqlClient/3.0.0": {
-      "sha512": "MUauWfCLsZQQMUR/wZhec5MH6+NTPmPp9i/OsjIMmIu2ICYUGOVm1x7RTqKxq19UWxXMSG03/O0FyXQJrpDs9A==",
+    "Microsoft.Data.SqlClient/3.1.5": {
+      "sha512": "0S3JjshifxLSM4FskA8KjkkRcvAay1ZENRDy+ota2+CuhOpckJquzEx9Puk3w3Y56ATJNcEcYLyIfuXJzUXLiw==",
       "type": "package",
-      "path": "microsoft.data.sqlclient/3.0.0",
+      "path": "microsoft.data.sqlclient/3.1.5",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -624,7 +624,7 @@
         "lib/netstandard2.0/Microsoft.Data.SqlClient.pdb",
         "lib/netstandard2.1/Microsoft.Data.SqlClient.dll",
         "lib/netstandard2.1/Microsoft.Data.SqlClient.pdb",
-        "microsoft.data.sqlclient.3.0.0.nupkg.sha512",
+        "microsoft.data.sqlclient.3.1.5.nupkg.sha512",
         "microsoft.data.sqlclient.nuspec",
         "ref/net461/Microsoft.Data.SqlClient.dll",
         "ref/net461/Microsoft.Data.SqlClient.pdb",
@@ -656,16 +656,16 @@
         "runtimes/win/lib/netstandard2.1/Microsoft.Data.SqlClient.pdb"
       ]
     },
-    "Microsoft.Data.SqlClient.SNI.runtime/3.0.0": {
-      "sha512": "n1sNyjJgu2pYWKgw3ZPikw3NiRvG4kt7Ya5MK8u77Rgj/1bTFqO/eDF4k5W9H5GXplMZCpKkNbp5kNBICgSB0w==",
+    "Microsoft.Data.SqlClient.SNI.runtime/3.0.1": {
+      "sha512": "FmXSf637gJuak1LTkempIJajyYxhtsHuj8uR13JOoBrQy2/NuLl6HEUrhpRFwxncjmL29PlHr6boaDD/7tGsJA==",
       "type": "package",
-      "path": "microsoft.data.sqlclient.sni.runtime/3.0.0",
+      "path": "microsoft.data.sqlclient.sni.runtime/3.0.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "LICENSE.txt",
         "dotnet.png",
-        "microsoft.data.sqlclient.sni.runtime.3.0.0.nupkg.sha512",
+        "microsoft.data.sqlclient.sni.runtime.3.0.1.nupkg.sha512",
         "microsoft.data.sqlclient.sni.runtime.nuspec",
         "runtimes/win-arm/native/Microsoft.Data.SqlClient.SNI.dll",
         "runtimes/win-arm64/native/Microsoft.Data.SqlClient.SNI.dll",
@@ -1389,7 +1389,7 @@
   },
   "projectFileDependencyGroups": {
     "net6.0": [
-      "Microsoft.Data.SqlClient >= 3.0.0"
+      "Microsoft.Data.SqlClient >= 3.1.5"
     ]
   },
   "packageFolders": {
@@ -1436,7 +1436,7 @@
         "dependencies": {
           "Microsoft.Data.SqlClient": {
             "target": "Package",
-            "version": "[3.0.0, )"
+            "version": "[3.1.5, )"
           }
         },
         "imports": [
@@ -1475,17 +1475,5 @@
         "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/8.0.203/RuntimeIdentifierGraph.json"
       }
     }
-  },
-  "logs": [
-    {
-      "code": "NU1903",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Package 'Microsoft.Data.SqlClient' 3.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-98g6-xh36-x2p7",
-      "libraryId": "Microsoft.Data.SqlClient",
-      "targetGraphs": [
-        "net6.0"
-      ]
-    }
-  ]
+  }
 }
