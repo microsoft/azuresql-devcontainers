@@ -1,0 +1,27 @@
+{
+    "id": "dotnet-aspire-azure-sql",
+    "version": "1.0.0",
+    "name": ".NET with Aspire and Azure SQL",
+    "description": "A development environment for .NET Aspire and Azure SQL, enabling streamlined local development and testing.",
+    "documentationURL": "https://github.com/microsoft/azuresql-devcontainers/tree/main/src/dotnet-aspire",
+    "publisher": "Azure SQL Developer Experiences Team",
+    "licenseURL": "https://github.com/devcontainers/templates/blob/main/LICENSE",
+    "options": {
+        "imageVariant": {
+            "type": "string",
+            "description": ".NET version:",
+            "proposals": [
+                "8.0-bookworm",
+                "8.0-jammy",
+                "8.0-bullseye"
+            ],
+            "default": "8.0-bookworm"
+        }
+    },
+    "platforms": [
+        ".NET",
+        ".NET Core",
+        ".NET Aspire",
+        "Azure SQL Database"
+    ]
+}
