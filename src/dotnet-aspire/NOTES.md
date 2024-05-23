@@ -1,5 +1,3 @@
-# Dev Container - .NET with Aspire and Azure SQL
-
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/croblesm/try-aspire-azure-sql/tree/main)
 
 This repository offers a Dev Container template, enabling you to effortlessly explore **.NET Aspire** and **Azure SQL**. In just a few simple steps, you can dive into the capabilities of these powerful technologies.
