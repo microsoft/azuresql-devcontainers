@@ -1,7 +1,7 @@
 
-# .NET with Aspire and Azure SQL (dotnet-aspire)
+# .NET and Azure SQL (dotnet)
 
-A development environment for .NET Aspire and Azure SQL, enabling streamlined local development and testing.
+A development environment for .NET and Azure SQL, enabling streamlined local development and testing.
 
 ## Options
 
@@ -10,7 +10,7 @@ A development environment for .NET Aspire and Azure SQL, enabling streamlined lo
 | imageVariant | .NET version: | string | 8.0-bookworm |
 
 
-This repository offers a Dev Container template, enabling you to effortlessly explore **.NET Aspire** and **Azure SQL**. In just a few simple steps, you can dive into the capabilities of these powerful technologies.
+This repository offers a Dev Container template, enabling you to effortlessly explore **.NET** and **Azure SQL**. In just a few simple steps, you can dive into the capabilities of these powerful technologies.
 
 A **development container** (Dev Container for short) is a running [Docker](https://www.docker.com) container with a well-defined tool/runtime stack and its prerequisites.You can try out Dev Containers with **[GitHub Codespaces](https://github.com/features/codespaces)** or **[Visual Studio Code Dev Containers](https://aka.ms/vscode-remote/containers)**.
 
@@ -49,13 +49,13 @@ Follow these steps to open this sample in a container using the VS Code Dev Cont
 
 This Dev Container includes a preconfigured database, specifically tailored for use with the Aspire component. This database serves as a foundation for demonstrating how the Aspire component interacts with Azure SQL.
 
-This template creates two containers, one for the Dev Container that includes .NET and Aspire, and one for Microsoft SQL Server. You will be connected to the Ubuntu, and from within that container, the MS SQL container will be available on **`localhost`** port 1433. The Dev Container also includes supporting scripts in the `.devcontainer/sql` folder used to configure the `Library` sample database.
+This template creates two containers, one for the Dev Container that includes .NET, and one for Microsoft SQL Server. You will be connected to the Ubuntu, and from within that container, the MS SQL container will be available on **`localhost`** port 1433. The Dev Container also includes supporting scripts in the `.devcontainer/sql` folder used to configure the `Library` sample database.
 
 The SQL container is deployed from the latest developer edition of Microsoft SQL 2022. The database(s) are made available directly in the Codespace/VS Code through the MSSQL extension with a connection labeled "LocalDev". The default `sa` user password is set using the .devcontainer/.env file. The default SQL port is mapped to port `1433` in `.devcontainer/docker-compose.yml`.
 
-.NET Aspire is a cutting-edge framework crafted for developing cloud-native applications, with a primary focus on containerized environments. Engineered with .NET Core, Aspire empowers developers to architect scalable and resilient applications optimized for cloud deployment.
+.NET 8 is a state-of-the-art framework for developing cloud-native applications, with a focus on containerized environments. Building on .NET Core, .NET 8 offers advanced features for creating scalable, performant, and resilient applications.
 
-By harnessing the power of Aspire, developers can prototype and refine their applications locally using this Dev Container environment. Subsequently, deploying these applications to Azure becomes a streamlined process, facilitated by the native integration between .NET Aspire and Azure SQL Database.
+With .NET 8, developers can prototype locally using the Dev Container environment and easily deploy to Azure. The framework's seamless integration with Azure SQL Database and Azure Kubernetes Service (AKS) simplifies the deployment process and enhances productivity. Improved performance, support for microservices, and robust tools make .NET 8 ideal for modern cloud development.
 
 **Note:**
 While the SQL Server container employs a standard version of SQL Server, all database development within this Dev Container can be validated for Azure SQL Database using the SQL Database Project. The SQL Database project is preconfigured with the target platform set as Azure SQL Database.
@@ -86,13 +86,9 @@ The `postCreateCommand.sh` script requires one argument: the path to the directo
 
 It utilizes the sqlpackage command-line utility to update the database schema using the .dacpac file, employing authentication credentials from the `.env` file situated in the `.devcontainer` directory.
 
-##### Trust HTTPS certificate for .NET Aspire
+##### Trust HTTPS certificate for .NET
 
-This task trusts the HTTPS certificate for the .NET Aspire project. It runs the command `dotnet dev-certs https --trust`.
-
-##### Update .NET SDK
-
-This task updates the .NET SDK. This update ensures that .NET Aspire can leverage the latest advancements and enhancements provided by the .NET ecosystem, enabling smoother development experiences and potentially addressing any compatibility issues with newer versions of .NET or its related components.
+This task trusts the HTTPS certificate for the .NET project. It runs the command `dotnet dev-certs https --trust`.
 
 ### Changing the sa password
 
@@ -176,4 +172,4 @@ Any use of third-party trademarks or logos are subject to those third-party's po
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-template.json](https://github.com/microsoft/azuresql-devcontainers/blob/main/src/dotnet-aspire/devcontainer-template.json).  Add additional notes to a `NOTES.md`._
+_Note: This file was auto-generated from the [devcontainer-template.json](https://github.com/microsoft/azuresql-devcontainers/blob/main/src/dotnet/devcontainer-template.json).  Add additional notes to a `NOTES.md`._
