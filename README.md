@@ -21,7 +21,7 @@ In the quest to enhance local development for Azure SQL Database, this repositor
 
 ![DevContainers-AzureSQL](DevContainers-AzureSQL.png)
 
-Our Dev Container templates simplify the development process by providing pre-configured environments that eliminate the need for manual setup. Developers can start coding immediately with all necessary tools and dependencies in place, using popular languages like `.NET`, `Node.js`, and `Python`.
+Our Dev Container templates simplify the development process by providing pre-configured environments that eliminate the need for manual setup. Developers can start coding immediately with all necessary tools and dependencies in place, using popular languages like `.NET`, `Node.js`, `Python`, `Go` and `Rust`.
 
 The local development environment mimics Azure SQL Database, allowing developers to manage data and test applications efficiently. Once ready, **GitHub Actions** automate the deployment process, transitioning seamlessly to **Azure Static Web Apps** and **Azure SQL Database**. This streamlined workflow enhances productivity, reduces setup time, and ensures consistency between local and production environments, helping developers deliver high-quality applications faster.
 
