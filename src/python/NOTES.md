@@ -122,10 +122,10 @@ network_mode: service:db
 
 By default, web frameworks and tools often only listen to localhost inside the container. As a result, we recommend using the `forwardPorts` property to make these ports available locally.
 
-This project uses the `5000` and `5001` ports for DAB, and the port `1433` for SQL Server:
+This project uses the `500` port for Python, and the port `1433` for SQL Server:
 
 ```json
-"forwardPorts": [5000, 5001, 8000, 1433]
+"forwardPorts": [5000, 1433]
 ```
 > **Note:** You can add additional ports to this list as needed.
 
