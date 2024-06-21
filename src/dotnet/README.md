@@ -10,7 +10,7 @@ A development environment for .NET and Azure SQL, enabling streamlined local dev
 | imageVariant | .NET version: | string | 8.0-bookworm |
 
 
-This repository offers a Dev Container template, enabling you to effortlessly explore **.NET** and **Azure SQL**. In just a few simple steps, you can dive into the capabilities of these powerful technologies.
+This Dev Container template enables you to effortlessly explore **.NET** and **Azure SQL**. In just a few simple steps, you can dive into the capabilities of these powerful technologies.
 
 A **development container** (Dev Container for short) is a running [Docker](https://www.docker.com) container with a well-defined tool/runtime stack and its prerequisites. You can try out Dev Containers with **[GitHub Codespaces](https://github.com/features/codespaces)** or **[Visual Studio Code Dev Containers](https://aka.ms/vscode-remote/containers)**.
 
