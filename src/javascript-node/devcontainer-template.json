@@ -18,7 +18,7 @@
                 "18-bookworm",
                 "18-bullseye"
             ],
-            "default": "22-bookworm"
+            "default": "22-bullseye"
         }
     },
     "platforms": [

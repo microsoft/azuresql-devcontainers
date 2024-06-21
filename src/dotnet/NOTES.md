@@ -29,11 +29,7 @@ Follow these steps to open this sample in a container using the VS Code Dev Cont
     - Press `F1` or `Ctrl+Shift+P` to open the command palette.
     - Select the **Dev Containers: New Dev Container** command.
     - Select the desired Dev Container template for Azure SQL Database, typing `*Azure SQL*`.
-    - Select one of the following templates:
-        - .NET with Aspire and Azure SQL (dotnet-aspire)
-        - .NET and Azure SQL (dotnet)
-        - Python and Azure SQL (python)
-        - Node.js and Azure SQL (node)
+    - Select the **.NET and Azure SQL (dotnet)** template
     - Wait for the container to build.
         - Visual Studio Code will build the container based on the selected configuration.
         - The build process might take a few minutes the first time.
@@ -65,9 +61,9 @@ We have added several tasks to this repository to help with common actions. You 
 2. Type "Run Task" and select "Tasks: Run Task".
 3. Choose the task you want to run from the list.
 
-##### Execute SQL Query
+##### Verify database schema and data
 
-This task opens the `verifyDatabase.sql` file in your workspace and executes the SQL query in it. It uses the `ms-mssql.mssql` extension to execute the query. This task is part of the build group and is the default task that runs when you run the build task group.
+This task opens the `verifyDatabase.sql` file in your workspace and executes the SQL query using the `ms-mssql.mssql` extension. This is an optional task that will help you to get familiar with the sample `Library` database tables and data.
 
 ##### Build SQL Database project
 
@@ -115,13 +111,7 @@ The `postCreateCommand.sh` script handles the database deployment by performing 
 
 #### Using the SQL Database Projects Extension
 
-You can use the SQL Database Projects extension to deploy the database schema. The Library.sqlproj project is located in the database/Library folder and can be built using the Build SQL Database project task. The output .dacpac files should be placed in the ./bin/Debug folder for deployment. 
-
-#### Verifying the Database Schema
-
-The `verifyDatabase.sql` file in the `database/Library` folder can be used to verify the database schema after deployment. You can run this script using the `Execute SQL Query` VS Code task.
-
-This setup ensures that your databases are properly deployed and ready to use after the container is created.
+You can use the SQL Database Projects extension to deploy the database schema. The Library.sqlproj project is located in the database/Library folder and can be built using the Build SQL Database project task. The output .dacpac files should be placed in the ./bin/Debug folder for deployment.
 
 ### Adding another service
 
@@ -161,8 +151,7 @@ contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additio
 
 ## Trademarks
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
+
 Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
 Any use of third-party trademarks or logos are subject to those third-party's policies.
