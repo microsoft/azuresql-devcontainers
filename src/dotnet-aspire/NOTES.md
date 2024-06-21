@@ -26,13 +26,21 @@ Follow these steps to open this sample in a container using the VS Code Dev Cont
 
 1. If this is your first time using a development container, please ensure your system meets the pre-reqs (i.e. have Docker installed) in the [getting started steps](https://aka.ms/vscode-remote/containers/getting-started).
 2. To use this repository, you can either open the repository in an isolated Docker volume:
-    - Press <kbd>F1</kbd> and select the **Dev Containers: Try a Sample...** command.
-    - Choose the ".NET Core" sample, wait for the container to start, and try things out!
-        > **Note:** Under the hood, this will use the **Dev Containers: Clone Repository in Container Volume...** command to clone the source code in a Docker volume instead of the local filesystem. [Volumes](https://docs.docker.com/storage/volumes/) are the preferred mechanism for persisting container data.
-   Or open a locally cloned copy of the code:
-    - Clone this repository to your local filesystem.
-    - Press <kbd>F1</kbd> and select the **Dev Containers: Open Folder in Container...** command.
-    - Select the cloned copy of this folder, wait for the container to start, and try things out!
+    - Press `F1` or `Ctrl+Shift+P` to open the command palette.
+    - Select the **Dev Containers: New Dev Container** command.
+    - Select the desired Dev Container template for Azure SQL Database, typing `*Azure SQL*`.
+    - Select one of the following templates:
+        - .NET with Aspire and Azure SQL (dotnet-aspire)
+        - .NET and Azure SQL (dotnet)
+        - Python and Azure SQL (python)
+        - Node.js and Azure SQL (node)
+    - Wait for the container to build.
+        - Visual Studio Code will build the container based on the selected configuration.
+        - The build process might take a few minutes the first time.
+        - Subsequent builds will be faster.
+    - Once the container is built, the repository will open in the Dev Container.
+
+> **Note:** Under the hood, this will use the **Dev Containers: Clone Repository in Container Volume...** command to clone the source code in a Docker volume instead of the local filesystem. [Volumes](https://docs.docker.com/storage/volumes/) are the preferred mechanism for persisting container data.
 
 ### About this template
 

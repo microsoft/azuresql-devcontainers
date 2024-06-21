@@ -1,0 +1,64 @@
+// For format details, see https://aka.ms/devcontainer.json. 
+// For config options, see the README at: https://github.com/microsoft/azuresql-devcontainers/tree/main/src/python
+{
+	"name": "Python and Azure SQL",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "app",
+	"workspaceFolder": "/workspace",
+	"customizations": {
+		// Configure properties specific to VS Code.
+		"vscode": {
+			// Set *default* container specific settings.json values on container create.
+			"settings": { 
+				"mssql.connections": [
+					{
+						"server": "localhost,1433",
+						"database": "master",
+						"authenticationType": "SqlLogin",
+						"user": "sa",
+						"password": "${env:SA_PASSWORD}",
+						"savePassword": true,
+						"profileName": "LocalDev",
+						"trustServerCertificate": true
+					}
+				],
+				"sqlDatabaseProjects.dotnetSDK Location": "/usr/share/dotnet/sdk/"
+			},
+			// Add the IDs of extensions you want installed when the container is created.
+			"extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+				"ms-vscode.vscode-node-azure-pack",
+				"ms-azuretools.vscode-docker",
+				"ms-mssql.mssql",
+				"github.copilot",
+				"github.codespaces"
+			]
+		}
+	},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [5000, 1433],
+
+    // Post create commands to run after the container is created.
+	"postCreateCommand": "bash .devcontainer/sql/postCreateCommand.sh 'database/Library/bin/Debug'",
+
+	// Post start commands to run after the container is started.
+
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	"features": {
+		"ghcr.io/devcontainers/features/azure-cli:1": {
+			"installBicep": true,
+			"installUsingPython": true,
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+			"version": "latest"
+		},
+		"ghcr.io/azure/azure-dev/azd:latest": {
+			"version": "latest"
+		}
+	}
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+}

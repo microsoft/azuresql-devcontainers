@@ -3,7 +3,7 @@ This repository offers a Dev Container template, enabling you to effortlessly ex
 
 A **development container** (Dev Container for short) is a running [Docker](https://www.docker.com) container with a well-defined tool/runtime stack and its prerequisites.You can try out Dev Containers with **[GitHub Codespaces](https://github.com/features/codespaces)** or **[Visual Studio Code Dev Containers](https://aka.ms/vscode-remote/containers)**.
 
-Check out our diverse range of Dev Container templates on the [containers.dev/templates](https://containers.dev/templates) website. Additionally, you can also experiment with other sample projects available under [vscode-remote-try-*](https://github.com/search?q=org%3Amicrosoft+vscode-remote-try-&type=Repositories).
+To learn more details about all the Azure SQL Database templates, you can explore the template repository at [aka.ms/azuresql-devcontainers](https://aka.ms/azuresql-devcontainers). This repository includes comprehensive information for each Azure SQL template. To learn more about Dev Containers, visit [containers.dev](https://containers.dev/) website, where you'll find a diverse range of templates.
 
 > **Note:** If you already have a Codespace or Dev Container, you can jump to the [About this template](#about-this-template) section.
 
@@ -26,13 +26,21 @@ Follow these steps to open this sample in a container using the VS Code Dev Cont
 
 1. If this is your first time using a development container, please ensure your system meets the pre-reqs (i.e. have Docker installed) in the [getting started steps](https://aka.ms/vscode-remote/containers/getting-started).
 2. To use this repository, you can either open the repository in an isolated Docker volume:
-    - Press <kbd>F1</kbd> and select the **Dev Containers: Try a Sample...** command.
-    - Choose the ".NET Core" sample, wait for the container to start, and try things out!
-        > **Note:** Under the hood, this will use the **Dev Containers: Clone Repository in Container Volume...** command to clone the source code in a Docker volume instead of the local filesystem. [Volumes](https://docs.docker.com/storage/volumes/) are the preferred mechanism for persisting container data.
-   Or open a locally cloned copy of the code:
-    - Clone this repository to your local filesystem.
-    - Press <kbd>F1</kbd> and select the **Dev Containers: Open Folder in Container...** command.
-    - Select the cloned copy of this folder, wait for the container to start, and try things out!
+    - Press `F1` or `Ctrl+Shift+P` to open the command palette.
+    - Select the **Dev Containers: New Dev Container** command.
+    - Select the desired Dev Container template for Azure SQL Database, typing `*Azure SQL*`.
+    - Select one of the following templates:
+        - .NET with Aspire and Azure SQL (dotnet-aspire)
+        - .NET and Azure SQL (dotnet)
+        - Python and Azure SQL (python)
+        - Node.js and Azure SQL (node)
+    - Wait for the container to build.
+        - Visual Studio Code will build the container based on the selected configuration.
+        - The build process might take a few minutes the first time.
+        - Subsequent builds will be faster.
+    - Once the container is built, the repository will open in the Dev Container.
+
+> **Note:** Under the hood, this will use the **Dev Containers: Clone Repository in Container Volume...** command to clone the source code in a Docker volume instead of the local filesystem. [Volumes](https://docs.docker.com/storage/volumes/) are the preferred mechanism for persisting container data.
 
 ### About this template
 

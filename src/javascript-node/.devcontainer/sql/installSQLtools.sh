@@ -13,3 +13,7 @@ mkdir -p /opt/sqlpackage
 unzip sqlpackage.zip -d /opt/sqlpackage && rm sqlpackage.zip
 chmod a+x /opt/sqlpackage/sqlpackage
 echo "Sqlpackage installed."
+
+echo "Installing mssql package for SQL Server connectivity in Node.js applications..."
+npm install -g mssql
+echo "mssql Node.js package installed."

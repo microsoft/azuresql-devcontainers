@@ -1,0 +1,29 @@
+{
+    "id": "javascript-node",
+    "version": "1.0.0",
+    "name": "Node.js and Azure SQL",
+    "description": "A development environment for Node.js and Azure SQL, enabling streamlined local development and testing.",
+    "documentationURL": "https://github.com/microsoft/azuresql-devcontainers/tree/main/src/javascript-node",
+    "publisher": "Azure SQL Developer Experiences Team",
+    "licenseURL": "https://github.com/devcontainers/templates/blob/main/LICENSE",
+    "options": {
+        "imageVariant": {
+            "type": "string",
+            "description": "Node.js version:",
+            "proposals": [
+                "22-bookworm",
+                "22-bullseye",
+                "20-bookworm",
+                "20-bullseye",
+                "18-bookworm",
+                "18-bullseye"
+            ],
+            "default": "22-bookworm"
+        }
+    },
+    "platforms": [
+        "Javascript",
+        "Node.js",
+        "Azure SQL Database"
+    ]
+}

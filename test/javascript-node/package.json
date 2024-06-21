@@ -1,0 +1,18 @@
+{
+    "name": "test",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+      "start": "node index.js",
+      "test": " REGRESSION_TESTING=true npm start"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": "Simple test to check database connectivity",
+    "dependencies": {
+      "dotenv": "^16.3.1",
+      "express": "^4.18.2",
+      "mssql": "^10.0.2"
+    }
+  }
