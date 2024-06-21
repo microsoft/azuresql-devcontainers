@@ -1,16 +1,16 @@
 
-# .NET and Azure SQL (dotnet)
+# Python and Azure SQL (python)
 
-A development environment for .NET and Azure SQL, enabling streamlined local development and testing.
+A development environment for Python and Azure SQL, enabling streamlined local development and testing.
 
 ## Options
 
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
-| imageVariant | .NET version: | string | 8.0-bookworm |
+| imageVariant | Python version: | string | 3.12-bullseye |
 
 
-This repository offers a Dev Container template, enabling you to effortlessly explore **.NET** and **Azure SQL**. In just a few simple steps, you can dive into the capabilities of these powerful technologies.
+This repository offers a Dev Container template, enabling you to effortlessly explore **Python** and **Azure SQL**. In just a few simple steps, you can dive into the capabilities of these powerful technologies.
 
 A **development container** (Dev Container for short) is a running [Docker](https://www.docker.com) container with a well-defined tool/runtime stack and its prerequisites. You can try out Dev Containers with **[GitHub Codespaces](https://github.com/features/codespaces)** or **[Visual Studio Code Dev Containers](https://aka.ms/vscode-remote/containers)**.
 
@@ -38,7 +38,7 @@ Follow these steps to open this sample in a container using the VS Code Dev Cont
     - Press `F1` or `Ctrl+Shift+P` to open the command palette.
     - Select the **Dev Containers: New Dev Container** command.
     - Select the desired Dev Container template for Azure SQL Database, typing `*Azure SQL*`.
-    - Select the **.NET and Azure SQL (dotnet)** template
+    - Select the **Python and Azure SQL (python)** template
     - Wait for the container to build.
         - Visual Studio Code builds the container based on the selected configuration.
         - The build process might take a few minutes the first time.
@@ -49,14 +49,13 @@ Follow these steps to open this sample in a container using the VS Code Dev Cont
 
 ### About this template
 
-This Dev Container includes a preconfigured database, specifically tailored for use with Node.js. This database serves as a foundation for demonstrating how the Node.js component interacts with Azure SQL.
+This Dev Container includes a preconfigured database, specifically tailored for use with Python. This database serves as a foundation for demonstrating how the Python component interacts with Azure SQL.
 
-This template creates two containers, one for the Dev Container that includes Node.js, and one for Microsoft SQL Server. You will be connected to the Ubuntu container, and from within that container, the MS SQL container will be available on localhost port 1433. The Dev Container also includes supporting scripts in the .devcontainer/sql folder used to configure the Library sample database.
+This template creates two containers, one for the Dev Container that includes Python, and one for Microsoft SQL Server. You will be connected to the Ubuntu container, and from within that container, the MS SQL container will be available on localhost port 1433. The Dev Container also includes supporting scripts in the .devcontainer/sql folder used to configure the Library sample database.
 
 The SQL container is deployed from the latest developer edition of Microsoft SQL 2022. The database(s) are made available directly in the Codespace/VS Code through the MSSQL extension with a connection labeled "LocalDev". The default sa user password is set using the .devcontainer/.env file. The default SQL port is mapped to port 1433 in .devcontainer/docker-compose.yml.
 
-Node.js is a powerful platform for building fast, scalable network applications. With its event-driven, non-blocking I/O model, Node.js is ideal for data-intensive real-time applications that run across distributed devices. The combination of Node.js and Azure SQL Database enables developers to create high-performance applications with ease.
-
+Python is a versatile and widely-used programming language known for its simplicity and readability. It is especially popular in data science, machine learning, and web development. Combining Python with Azure SQL Database allows developers to create robust, scalable, and efficient applications quickly and easily.
 
 **Note:**
 While the SQL Server container employs a standard version of SQL Server, all database development within this Dev Container can be validated for Azure SQL Database using the SQL Database Project. The SQL Database project is preconfigured with the target platform set as Azure SQL Database.
@@ -87,9 +86,9 @@ The `postCreateCommand.sh` script requires one argument: the path to the directo
 
 It utilizes the sqlpackage command-line utility to update the database schema using the .dacpac file, employing authentication credentials from the `.env` file situated in the `.devcontainer` directory.
 
-##### Trust HTTPS certificate for .NET
+##### Trust HTTPS certificate for Python
 
-This task trusts the HTTPS certificate for the .NET project. It runs the command `dotnet dev-certs https --trust`.
+This task trusts the HTTPS certificate for the Python project. It runs the command `dotnet dev-certs https --trust`.
 
 ### Changing the sa password
 
@@ -145,4 +144,4 @@ The `ports` property in `docker-compose.yml` [publishes](https://docs.docker.com
 
 ---
 
-_Note: This file was auto-generated from the [devcontainer-template.json](https://github.com/microsoft/azuresql-devcontainers/blob/main/src/dotnet/devcontainer-template.json).  Add additional notes to a `NOTES.md`._
+_Note: This file was auto-generated from the [devcontainer-template.json](https://github.com/microsoft/azuresql-devcontainers/blob/main/src/python/devcontainer-template.json).  Add additional notes to a `NOTES.md`._
