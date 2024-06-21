@@ -10,9 +10,6 @@ SApassword=$SA_PASSWORD
 # Parameters
 dacpath=$1
 
-echo "sqlcmd location: $(which sqlcmd)"
-echo "Current PATH: $PATH"
-
 echo "SELECT * FROM SYS.DATABASES" | dd of=testsqlconnection.sql
 for i in {1..30};
 do

@@ -14,3 +14,9 @@
 # Python
 ./.github/actions/smoke-test/build-python.sh python
 ./.github/actions/smoke-test/test-python.sh python
+
+# Remove all containers
+docker rm -f $(docker ps -a -q)
+
+# Remove all unused Docker objects...
+docker system prune -a -f
