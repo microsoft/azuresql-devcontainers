@@ -17,11 +17,11 @@ Streamlined development environments for Azure SQL Database using Dev Containers
 
 ## Overview
 
-In the quest to enhance local development for Azure SQL Database, this repository provides a comprehensive solution leveraging the power of Dev Containers. These templates offer developers a seamless and efficient development environment, enabling them to build applications for Azure SQL Database with ease and confidence. Dev Containers can be utilized in any development environment, including the cloud, promoting consistency across teams and workflows.
+In the quest to enhance local development for Azure SQL Database, this repository provides a comprehensive solution using the power of Dev Containers. These templates offer developers a seamless and efficient development environment, enabling them to build applications for Azure SQL Database with ease and confidence. Dev Containers can be utilized in any development environment, including the cloud, promoting consistency across teams and workflows.
 
 ![DevContainers-AzureSQL](DevContainers-AzureSQL.png)
 
-Our Dev Container templates simplify the development process by providing pre-configured environments that eliminate the need for manual setup. Developers can start coding immediately with all necessary tools and dependencies in place, using popular languages like `.NET` & `NET Aspire`, `Node.js`, `Python`.
+Our Dev Container templates simplify the development process by providing preconfigured environments that eliminate the need for manual setup. Developers can start coding immediately with all necessary tools and dependencies in place, using popular languages like `.NET` & `NET Aspire`, `Node.js`, `Python`.
 
 The local development environment mimics Azure SQL Database, allowing developers to manage data and test applications efficiently. Once ready, **GitHub Actions** automate the deployment process, transitioning seamlessly to **Azure Static Web Apps** and **Azure SQL Database**. This streamlined workflow enhances productivity, reduces setup time, and ensures consistency between local and production environments, helping developers deliver high-quality applications faster.
 
@@ -42,15 +42,15 @@ We recognize the need for efficient local development environments tailored to A
 
 ### Accelerating Time-to-Market
 
-Dev Containers streamline the development lifecycle, enabling developers to focus on coding and testing without the hassle of environment setup. This efficiency leads to faster iterations, higher-quality applications, and a reduced time-to-market for applications built on Azure SQL Database, giving businesses a competitive edge.
+Dev Containers streamline the development lifecycle, enabling developers to focus on coding and testing without the hassle of environment setup. The increased efficiency leads to faster iterations, higher-quality applications, and a reduced time-to-market for applications built on Azure SQL Database, giving businesses a competitive edge.
 
 ### Cost-Efficiency and Scalability
 
-Local development with Dev Containers reduces cloud costs associated with development and testing in Azure environments. This optimization of resources improves cost-efficiency and scalability. Developers can transition seamlessly from local development to Azure environments, leveraging the scalability and reliability of Azure SQL Database for production deployments without incurring unnecessary costs.
+Local development with Dev Containers reduces cloud costs associated with development and testing in Azure environments. This optimization of resources improves cost-efficiency and scalability. Developers can transition seamlessly from local development to Azure environments, using the scalability and reliability of Azure SQL Database for production deployments without incurring unnecessary costs.
 
 ### Alignment with Cloud-Native Trends
 
-Dev Containers support cloud-native development scenarios, aligning with modern application architectures and frameworks. This ensures compatibility with Azure SQL Database and facilitates seamless deployment to Azure environments. By embracing cloud-native trends, we position Azure SQL Database as the platform of choice for modern, cloud-native applications, driving long-term adoption and revenue growth.
+Dev Containers support cloud-native development scenarios, aligning with modern application architectures and frameworks. Ensuring compatibility with Azure SQL Database and facilitates seamless deployment to Azure environments. By embracing cloud-native trends, we position Azure SQL Database as the platform of choice for modern, cloud-native applications, driving long-term adoption and revenue growth.
 
 ## Why Dev Containers, Docker, and VS Code?
 
@@ -74,8 +74,11 @@ Adopting Dev Containers for Azure SQL Database development offers several advant
 This repository includes Dev Container templates for the following frameworks:
 
 - .NET Aspire
+- .NET 8
+- Node.js (JavaScript)
+- Python
 
-Each template comes with a pre-configured Azure SQL Database, making it easy to start developing right away.
+Each template comes with a preconfigured Azure SQL Database, making it easy to start developing right away.
 
 ## Contributions
 
@@ -85,7 +88,7 @@ The [Dev Container Template specification](https://containers.dev/implementors/t
 
 ### Contributing to this repository
 
-This repository will accept improvement and bug fix contributions related to the
+This repository accepts improvement and bug fix contributions related to the
 [current set of maintained templates](./src).
 
 ## Feedback
@@ -93,5 +96,6 @@ This repository will accept improvement and bug fix contributions related to the
 Issues related to these templates can be reported in [an issue](https://github.com/microsoft/azuresql-devcontainers/issues) in this repository.
 
 # License
+
 Copyright (c) Microsoft Corporation. All rights reserved. <br />
 Licensed under the MIT License. See [LICENSE](LICENSE).
