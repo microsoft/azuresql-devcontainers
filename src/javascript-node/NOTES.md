@@ -26,7 +26,7 @@ Follow these steps to open this sample in a container using the VS Code Dev Cont
 2. To use this repository, you can either open the repository in an isolated Docker volume:
     - Press `F1` or `Ctrl+Shift+P` to open the command palette.
     - Select the **Dev Containers: New Dev Container** command.
-    - Select the desired Dev Container template for Azure SQL Database, typing `*Azure SQL*`.
+    - Select the desired dev container template for Azure SQL Database, typing `*Azure SQL*`.
     - Select the **Node.js and Azure SQL (javascript-node)** template
     - Wait for the container to build.
         - Visual Studio Code builds the container based on the selected configuration.
@@ -34,24 +34,25 @@ Follow these steps to open this sample in a container using the VS Code Dev Cont
         - Subsequent builds are faster.
     - Once the container is built, the repository opens in the Dev Container.
 
-> **Note:** Under the hood, this will use the **Dev Containers: Clone Repository in Container Volume...** command to clone the source code in a Docker volume instead of the local filesystem. [Volumes](https://docs.docker.com/storage/volumes/) are the preferred mechanism for persisting container data.
+> **Note:** 
+> Under the hood, this will use the **Dev Containers: Clone Repository in Container Volume...** command to clone the source code in a Docker volume instead of the local filesystem. [Volumes](https://docs.docker.com/storage/volumes/) are the preferred mechanism for persisting container data.
 
 ### About this template
 
-This Dev Container includes a preconfigured database, specifically tailored for use with NET 8. This database serves as a foundation for demonstrating how the Node.js component interacts with Azure SQL.
+This dev container includes a preconfigured database, specifically tailored for use with Node.js. This database serves as a foundation for demonstrating how the Node.js component interacts with Azure SQL.
 
-This template creates two containers, one for the Dev Container that includes Node.js 8, and one for Microsoft SQL Server. You will be connected to the Ubuntu, and from within that container, the MS SQL container will be available on **`localhost`** port 1433. The Dev Container also includes supporting scripts in the `.devcontainer/sql` folder used to configure the `Library` sample database.
+This template creates two containers, one for the dev container that includes Node.js, and one for Microsoft SQL Server. You will be connected to the Ubuntu container, and from within that container, the MS SQL container will be available on localhost port 1433. The dev container also includes supporting scripts in the `.devcontainer/sql` folder used to configure the `Library` sample database.
 
-The SQL container is deployed from the latest developer edition of Microsoft SQL 2022. The database(s) are made available directly in the Codespace/VS Code through the MSSQL extension with a connection labeled "LocalDev". The default `sa` user password is set using the .devcontainer/.env file. The default SQL port is mapped to port `1433` in `.devcontainer/docker-compose.yml`.
+The SQL container is deployed from the latest developer edition of Microsoft SQL 2022. The database(s) are made available directly in the Codespace/VS Code through the MSSQL extension with a connection labeled **LocalDev**. The default sa user password is set using the `.devcontainer/.env` file. The default SQL port is mapped to port 1433 in `.devcontainer/docker-compose.yml`.
 
-Node.js 8 is a state-of-the-art framework for developing cloud-native applications, with a focus on containerized environments. Building on Node.js Core, Node.js 8 offers advanced features for creating scalable, performant, and resilient applications. Improved performance, support for microservices, and robust tools make Node.js 8 ideal for modern cloud development.
+Node.js is a powerful platform for building fast, scalable network applications. With its event-driven, non-blocking I/O model, Node.js is ideal for data-intensive real-time applications that run across distributed devices. The combination of Node.js and Azure SQL Database enables developers to create high-performance applications with ease.
 
-**Note:**
-While the SQL Server container employs a standard version of SQL Server, all database development within this Dev Container can be validated for Azure SQL Database using the SQL Database Project. The SQL Database project is preconfigured with the target platform set as Azure SQL Database.
+> **Note:**
+> While the SQL Server container employs a standard version of SQL Server, all database development within this dev container can be validated for Azure SQL Database using the SQL Database Project. The SQL Database project is preconfigured with the target platform set as Azure SQL Database.
 
 #### Visual Code Tasks
 
-This Dev Container template includes multiple tasks that can help with common actions. You can access these tasks by opening the Command Palette in VS Code. Here's how:
+This dev container template includes multiple tasks that can help with common actions. You can access these tasks by opening the Command Palette in VS Code. Here's how:
 
 1. To open the Command Palette, press <kbd>F1</kbd> or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>.
 2. Type "Run Task" and select "Tasks: Run Task".
@@ -59,7 +60,7 @@ This Dev Container template includes multiple tasks that can help with common ac
 
 ##### Verify database schema and data
 
-This task opens the `verifyDatabase.sql` file in your workspace and executes the SQL query using the `ms-mssql.mssql` extension. This task is optional however it can help you to become familiar with the sample `Library` database tables and data included in this Dev Container template.
+This task opens the `verifyDatabase.sql` file in your workspace and executes the SQL query using the `ms-mssql.mssql` extension. This task is optional however it can help you to become familiar with the sample `Library` database tables and data included in this dev container template.
 
 ##### Build SQL Database project
 
@@ -103,7 +104,7 @@ The `postCreateCommand.sh` script handles the database deployment by performing 
 
 #### Using the SQL Database Projects Extension
 
-You can use the SQL Database Projects extension to deploy the database schema. The Library.sqlproj project is located in the database/Library folder and can be built using the Build SQL Database project task. The output .dacpac files should be placed in the ./bin/Debug folder for deployment.
+You can use the SQL Database Projects extension to deploy the database schema. The `Library.sqlproj` project is located in the `database/Library` folder and can be built using the Build SQL Database project task. The output .dacpac files should be placed in the `./bin/Debug` folder for deployment.
 
 ### Adding another service
 

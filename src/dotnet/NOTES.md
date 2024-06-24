@@ -1,11 +1,12 @@
 
-This Dev Container template enables you to effortlessly explore **.NET** and **Azure SQL**. In just a few simple steps, you can dive into the capabilities of these powerful technologies.
+This dev container template enables you to effortlessly explore **.NET** and **Azure SQL**. In just a few simple steps, you can dive into the capabilities of these powerful technologies.
 
-A **development container** (Dev Container for short) is a running [Docker](https://www.docker.com) container with a well-defined tool/runtime stack and its prerequisites. You can try out Dev Containers with **[GitHub Codespaces](https://github.com/features/codespaces)** or **[Visual Studio Code Dev Containers](https://aka.ms/vscode-remote/containers)**.
+A **development container** (Dev Container for short) is a running [Docker](https://www.docker.com) container with a well-defined tool/runtime stack and its prerequisites. You can try out dev containers with **[GitHub Codespaces](https://github.com/features/codespaces)** or **[Visual Studio Code Dev Containers](https://aka.ms/vscode-remote/containers)**.
 
 To learn more details about all the Azure SQL Database templates, you can explore the template repository at [aka.ms/azuresql-devcontainers](https://aka.ms/azuresql-devcontainers). This repository includes comprehensive information for each Azure SQL template. To learn more about Dev Containers, visit [containers.dev](https://containers.dev/) website, where you find a diverse range of templates.
 
-> **Note:** If you already have a Codespace or Dev Container, you can jump to the [About this template](#about-this-template) section.
+> **Note:** 
+> If you already have a Codespace or Dev Container, you can jump to the [About this template](#about-this-template) section.
 
 ## Setting up the development container
 
@@ -22,37 +23,37 @@ For more info, check out the [GitHub documentation](https://docs.github.com/en/f
 
 Follow these steps to open this sample in a container using the VS Code Dev Containers extension:
 
-1. If you're using a Dev Container for the first time, ensure your system meets the prerequisites in the [getting started steps](https://aka.ms/vscode-remote/containers/getting-started).
+1. If you're using a dev container for the first time, ensure your system meets the prerequisites in the [getting started steps](https://aka.ms/vscode-remote/containers/getting-started).
 2. To use this repository, you can either open the repository in an isolated Docker volume:
     - Press `F1` or `Ctrl+Shift+P` to open the command palette.
     - Select the **Dev Containers: New Dev Container** command.
-    - Select the desired Dev Container template for Azure SQL Database, typing `*Azure SQL*`.
+    - Select the desired dev container template for Azure SQL Database, typing `*Azure SQL*`.
     - Select the **.NET and Azure SQL (dotnet)** template
     - Wait for the container to build.
         - Visual Studio Code builds the container based on the selected configuration.
         - The build process might take a few minutes the first time.
         - Subsequent builds are faster.
-    - Once the container is built, the repository opens in the Dev Container.
+    - Once the container is built, the repository opens in the dev container.
 
-> **Note:** Under the hood, this will use the **Dev Containers: Clone Repository in Container Volume...** command to clone the source code in a Docker volume instead of the local filesystem. [Volumes](https://docs.docker.com/storage/volumes/) are the preferred mechanism for persisting container data.
+> **Note:**
+> Under the hood, this will use the **Dev Containers: Clone Repository in Container Volume...** command to clone the source code in a Docker volume instead of the local filesystem. [Volumes](https://docs.docker.com/storage/volumes/) are the preferred mechanism for persisting container data.
 
 ### About this template
 
-This Dev Container includes a preconfigured database, specifically tailored for use with Node.js. This database serves as a foundation for demonstrating how the Node.js component interacts with Azure SQL.
+This Dev Container includes a preconfigured database, specifically tailored for use with NET 8. This database serves as a foundation for demonstrating how the .NET component interacts with Azure SQL.
 
-This template creates two containers, one for the Dev Container that includes Node.js, and one for Microsoft SQL Server. You will be connected to the Ubuntu container, and from within that container, the MS SQL container will be available on localhost port 1433. The Dev Container also includes supporting scripts in the .devcontainer/sql folder used to configure the Library sample database.
+This template creates two containers, one for the Dev Container that includes .NET 8, and one for Microsoft SQL Server. You will be connected to the Ubuntu, and from within that container, the MS SQL container will be available on **`localhost`** port 1433. The Dev Container also includes supporting scripts in the `.devcontainer/sql` folder used to configure the `Library` sample database.
 
-The SQL container is deployed from the latest developer edition of Microsoft SQL 2022. The database(s) are made available directly in the Codespace/VS Code through the MSSQL extension with a connection labeled "LocalDev". The default sa user password is set using the .devcontainer/.env file. The default SQL port is mapped to port 1433 in .devcontainer/docker-compose.yml.
+The SQL container is deployed from the latest developer edition of Microsoft SQL 2022. The database(s) are made available directly in the Codespace/VS Code through the MSSQL extension with a connection labeled **LocalDev**. The default `sa` user password is set using the .devcontainer/.env file. The default SQL port is mapped to port `1433` in `.devcontainer/docker-compose.yml`.
 
-Node.js is a powerful platform for building fast, scalable network applications. With its event-driven, non-blocking I/O model, Node.js is ideal for data-intensive real-time applications that run across distributed devices. The combination of Node.js and Azure SQL Database enables developers to create high-performance applications with ease.
+.NET 8 is a state-of-the-art framework for developing cloud-native applications, with a focus on containerized environments. Built on .NET Core, .NET 8 offers advanced features for creating scalable, performant, and resilient applications. Improved performance, support for microservices, and robust tools make .NET 8 ideal for modern cloud development.
 
-
-**Note:**
-While the SQL Server container employs a standard version of SQL Server, all database development within this Dev Container can be validated for Azure SQL Database using the SQL Database Project. The SQL Database project is preconfigured with the target platform set as Azure SQL Database.
+> **Note:**
+> While the SQL Server container employs a standard version of SQL Server, all database development within this dev container can be validated for Azure SQL Database using the SQL Database Project. The SQL Database project is preconfigured with the target platform set as Azure SQL Database.
 
 #### Visual Code Tasks
 
-This Dev Container template includes multiple tasks that can help with common actions. You can access these tasks by opening the Command Palette in VS Code. Here's how:
+This dev container template includes multiple tasks that can help with common actions. You can access these tasks by opening the Command Palette in VS Code. Here's how:
 
 1. To open the Command Palette, press <kbd>F1</kbd> or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>.
 2. Type "Run Task" and select "Tasks: Run Task".
@@ -60,7 +61,7 @@ This Dev Container template includes multiple tasks that can help with common ac
 
 ##### Verify database schema and data
 
-This task opens the `verifyDatabase.sql` file in your workspace and executes the SQL query using the `ms-mssql.mssql` extension. This task is optional however it can help you to become familiar with the sample `Library` database tables and data included in this Dev Container template.
+This task opens the `verifyDatabase.sql` file in your workspace and executes the SQL query using the `ms-mssql.mssql` extension. This task is optional however it can help you to become familiar with the sample `Library` database tables and data included in this dev container template.
 
 ##### Build SQL Database project
 
@@ -108,7 +109,7 @@ The `postCreateCommand.sh` script handles the database deployment by performing 
 
 #### Using the SQL Database Projects Extension
 
-You can use the SQL Database Projects extension to deploy the database schema. The Library.sqlproj project is located in the database/Library folder and can be built using the Build SQL Database project task. The output .dacpac files should be placed in the ./bin/Debug folder for deployment.
+You can use the SQL Database Projects extension to deploy the database schema. The `Library.sqlproj` project is located in the `database/Library` folder and can be built using the Build SQL Database project task. The output .dacpac files should be placed in the `./bin/Debug` folder for deployment.
 
 ### Adding another service
 
@@ -128,6 +129,7 @@ This project uses the `5000` and `5001` ports for .NET, and the port `1433` for 
 ```json
 "forwardPorts": [5000, 5001, 1433]
 ```
-> **Note:** You can add additional ports to this list as needed.
+> **Note:** 
+> You can add additional ports to this list as needed.
 
 The `ports` property in `docker-compose.yml` [publishes](https://docs.docker.com/config/containers/container-networking/#published-ports) rather than forwards the port. This configuration couldn't work in a cloud environment like Codespaces and applications need to listen to `*` or `0.0.0.0` for the application to be accessible externally. Fortunately the `forwardPorts` property doesn't have this limitation.

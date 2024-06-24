@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Execute SQL Query",
+            "label": "Verify database schema and data",
             "type": "shell",
             "command": "code",
             "args": [
