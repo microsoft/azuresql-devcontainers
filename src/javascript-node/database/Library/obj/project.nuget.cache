@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "X6ff9w+GEkE=",
+  "success": true,
+  "projectFilePath": "/workspaces/azuresql-devcontainers/src/javascript-node/database/Library/Library.sqlproj",
+  "expectedPackageFiles": [
+    "/home/codespace/.nuget/packages/microsoft.netframework.referenceassemblies/1.0.0/microsoft.netframework.referenceassemblies.1.0.0.nupkg.sha512",
+    "/home/codespace/.nuget/packages/microsoft.netframework.referenceassemblies.net46/1.0.0/microsoft.netframework.referenceassemblies.net46.1.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

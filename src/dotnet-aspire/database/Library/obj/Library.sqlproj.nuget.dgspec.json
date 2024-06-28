@@ -1,0 +1,55 @@
+{
+  "format": 1,
+  "restore": {
+    "/workspaces/azuresql-devcontainers/src/dotnet-aspire/database/Library/Library.sqlproj": {}
+  },
+  "projects": {
+    "/workspaces/azuresql-devcontainers/src/dotnet-aspire/database/Library/Library.sqlproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/workspaces/azuresql-devcontainers/src/dotnet-aspire/database/Library/Library.sqlproj",
+        "projectName": "Library",
+        "projectPath": "/workspaces/azuresql-devcontainers/src/dotnet-aspire/database/Library/Library.sqlproj",
+        "packagesPath": "/home/codespace/.nuget/packages/",
+        "outputPath": "/workspaces/azuresql-devcontainers/src/dotnet-aspire/database/Library/obj/",
+        "projectStyle": "PackageReference",
+        "skipContentFileWrite": true,
+        "configFilePaths": [
+          "/home/codespace/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net46"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net46": {
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "noWarn": [
+            "NU5128"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net46": {
+          "dependencies": {
+            "Microsoft.NETFramework.ReferenceAssemblies": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.0.0, )"
+            }
+          }
+        }
+      }
+    }
+  }
+}
