@@ -10,6 +10,9 @@ SApassword=$SA_PASSWORD
 # Parameters
 dacpath=$1
 
+# Extract the project directory from the dacpath
+projectDir=$(echo $dacpath | cut -d'/' -f1-2)
+
 echo "SELECT * FROM SYS.DATABASES" | dd of=testsqlconnection.sql
 for i in {1..30};
 do
@@ -36,11 +39,16 @@ done
 
 if [ $dacpac == "true" ] 
 then
+    # Build the SQL Database project
+    echo "Building SQL Database project at $projectDir..."
+    dotnet build $projectDir
+
     for f in $dacpath/*
     do
         if [ $f == $dacpath/*".dacpac" ]
         then
             dbname=$(basename $f ".dacpac")
+            # Deploy the dacpac
             echo "Deploying dacpac $f"
             /opt/sqlpackage/sqlpackage /Action:Publish /SourceFile:$f /TargetServerName:localhost /TargetDatabaseName:$dbname /TargetUser:sa /TargetPassword:$SApassword /TargetTrustServerCertificate:True
         fi
