@@ -1,5 +1,6 @@
 # Smoke tests
 # .NET
+cd /workspaces/azuresql-devcontainers
 ./.github/actions/smoke-test/build-dotnet.sh dotnet
 ./.github/actions/smoke-test/test-dotnet.sh dotnet
 
