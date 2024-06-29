@@ -1,3 +1,12 @@
+/workspaces/azuresql-devcontainers/src/dotnet/database/Library/bin/Debug/Library.dacpac
+/workspaces/azuresql-devcontainers/src/dotnet/database/Library/bin/Debug/Library.dll
+/workspaces/azuresql-devcontainers/src/dotnet/database/Library/bin/Debug/Library.pdb
+/workspaces/azuresql-devcontainers/src/dotnet/database/Library/obj/Debug/Model.xml
+/workspaces/azuresql-devcontainers/src/dotnet/database/Library/obj/Debug/refactor.xml
+/workspaces/azuresql-devcontainers/src/dotnet/database/Library/obj/Debug/postdeploy.sql
+/workspaces/azuresql-devcontainers/src/dotnet/database/Library/obj/Debug/predeploy.sql
+/workspaces/azuresql-devcontainers/src/dotnet/database/Library/obj/Debug/Library.dll
+/workspaces/azuresql-devcontainers/src/dotnet/database/Library/obj/Debug/Library.pdb
 /workspaces/azuresql-devcontainers/src/python/database/Library/bin/Debug/Library.dacpac
 /workspaces/azuresql-devcontainers/src/python/database/Library/bin/Debug/Library.dll
 /workspaces/azuresql-devcontainers/src/python/database/Library/bin/Debug/Library.pdb
