@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Verify database schema and data",
+            "label": "1. Verify database schema and data",
             "type": "shell",
             "command": "code",
             "args": [
@@ -17,7 +17,7 @@
             }
         },
         {
-            "label": "Build SQL Database project",
+            "label": "2. Build SQL Database project",
             "type": "shell",
             "command": "dotnet build",
             "options": {
@@ -25,7 +25,7 @@
             }
         },
         {
-            "label": "Deploy SQL Database project",
+            "label": "3. Publish SQL Database project",
             "type": "shell",
             "command": "bash",
             "args": [

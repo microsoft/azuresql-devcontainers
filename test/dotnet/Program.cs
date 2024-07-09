@@ -3,6 +3,7 @@
  * Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
  *-------------------------------------------------------------------------------------------------------------*/
 
+using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -42,7 +43,9 @@ namespace aspnetapp
                 .UseKestrel()
                 .UseUrls("http://0.0.0.0:8090")
                 .Configure(app => app.Run(async context => {
-                    await context.Response.WriteAsync("The databases are: " + databaseNames);
+                    string responseText = "The databases are: " + databaseNames;
+                    Console.WriteLine(responseText); // Log to console
+                    await context.Response.WriteAsync(responseText); // Send to client
                 }))
                 .Build();
 

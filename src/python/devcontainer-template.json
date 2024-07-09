@@ -1,6 +1,6 @@
 {
     "id": "python",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "name": "Python and Azure SQL",
     "description": "A development environment for Python and Azure SQL, enabling streamlined local development and testing.",
     "documentationURL": "https://github.com/microsoft/azuresql-devcontainers/tree/main/src/python",

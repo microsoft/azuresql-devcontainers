@@ -5,7 +5,7 @@ dacpac="false"
 
 # Load SA_PASSWORD from .env file
 export $(grep -v '^#' .devcontainer/.env | xargs)
-SApassword=$SA_PASSWORD
+SApassword=$MSSQL_SA_PASSWORD
 
 # Parameters
 dacpath=$1

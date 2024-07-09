@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "rDCW86W4EVssBZtmcRTKrI9gegpXLaD59M5+zpqUdwQ=",
+  "Source": "aspnetapp",
+  "BasePath": "_content/aspnetapp",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
