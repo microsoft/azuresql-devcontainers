@@ -79,7 +79,7 @@ This task builds the SQL Database project. It runs the command `dotnet build` in
 
 This task is optional, but it's useful to verify the database schema. You can use this SQL Database project to make changes to the database schema and deploy it to the SQL Server container.
 
-#### Deploy SQL Database Project
+#### Deploy SQL Database project
 
 This task involves deploying the SQL Database project to your SQL Server container. It executes the `postCreateCommand.sh` script found in the `.devcontainer/sql` directory of your workspace.
 
