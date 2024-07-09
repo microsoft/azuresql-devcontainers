@@ -60,7 +60,7 @@ The database container (SQL-Library) is deployed from the latest developer editi
 .NET 8 is a state-of-the-art framework for developing cloud-native applications, with a focus on containerized environments. Built on .NET Core, .NET 8 offers advanced features for creating scalable, performant, and resilient applications. Improved performance, support for microservices, and robust tools make .NET 8 ideal for modern cloud development.
 
 > **Note:**
-> While the SQL Server container employs a standard version of SQL Server, all database development within this dev container can be validated for Azure SQL Database using the SQL Database Project. The SQL Database project is preconfigured with the target platform set as Azure SQL Database.
+> While the database container employs a development version of Azure SQL Edge , all database development within this dev container can be validated for Azure SQL Database using the SQL Database Project. The SQL Database project is preconfigured with the target platform set as Azure SQL Database.
 
 #### Visual Code Tasks
 
