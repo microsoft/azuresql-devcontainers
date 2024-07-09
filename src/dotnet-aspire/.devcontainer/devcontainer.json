@@ -16,7 +16,7 @@
 						"database": "master",
 						"authenticationType": "SqlLogin",
 						"user": "sa",
-						"password": "${env:SA_PASSWORD}",
+						"password": "${env:MSSQL_SA_PASSWORD}",
 						"savePassword": true,
 						"profileName": "LocalDev",
 						"trustServerCertificate": true
