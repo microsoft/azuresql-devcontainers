@@ -59,7 +59,7 @@ The database container (SQL-Library) is deployed from the latest developer editi
 Node.js is a powerful platform for building fast, scalable network applications. With its event-driven, non-blocking I/O model, Node.js is ideal for data-intensive real-time applications that run across distributed devices. The combination of Node.js and Azure SQL Database enables developers to create high-performance applications with ease.
 
 > **Note:**
-> While the SQL Server container employs a standard version of SQL Server, all database development within this dev container can be validated for Azure SQL Database using the SQL Database Project. The SQL Database project is preconfigured with the target platform set as Azure SQL Database.
+> While the database container employs a development version of Azure SQL Edge , all database development within this dev container can be validated for Azure SQL Database using the SQL Database Project. The SQL Database project is preconfigured with the target platform set as Azure SQL Database.
 
 #### Visual Code Tasks
 
