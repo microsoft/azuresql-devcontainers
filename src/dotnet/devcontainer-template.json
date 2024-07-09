@@ -1,6 +1,6 @@
 {
     "id": "dotnet",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "name": ".NET and Azure SQL",
     "description": "A development environment for .NET and Azure SQL, enabling streamlined local development and testing.",
     "documentationURL": "https://github.com/microsoft/azuresql-devcontainers/tree/main/src/dotnet",
