@@ -49,7 +49,7 @@ The database container (SQL-Library) is deployed from the latest developer editi
 .NET Aspire is a cutting-edge framework crafted for developing cloud-native applications, with a primary focus on containerized environments. Aspire, built with .NET Core, empowers developers to architect scalable and resilient applications optimized for cloud deployment.
 
 > **Note:**
-> While the SQL Server container employs a standard version of SQL Server, all database development within this dev container can be validated for Azure SQL Database using the SQL Database Project. The SQL Database project is preconfigured with the target platform set as Azure SQL Database.
+> While the database container employs a development version of Azure SQL Edge , all database development within this dev container can be validated for Azure SQL Database using the SQL Database Project. The SQL Database project is preconfigured with the target platform set as Azure SQL Database.
 
 #### Visual Code Tasks
 
