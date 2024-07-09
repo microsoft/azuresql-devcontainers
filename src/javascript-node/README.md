@@ -54,7 +54,7 @@ This dev container includes a preconfigured database, specifically tailored for 
 
 This template creates two containers, one for the dev container that includes Node.js, and one for Microsoft SQL Server. You will be connected to the Ubuntu container, and from within that container, the MS SQL container will be available on localhost port 1433. The dev container also includes supporting scripts in the `.devcontainer/sql` folder used to configure the `Library` sample database.
 
-The SQL container is deployed from the latest developer edition of Microsoft SQL 2022. The database(s) are made available directly in the Codespace/VS Code through the MSSQL extension with a connection labeled **LocalDev**. The default sa user password is set using the `.devcontainer/.env` file. The default SQL port is mapped to port 1433 in `.devcontainer/docker-compose.yml`.
+The database container (SQL-Library) is deployed from the latest developer edition of Azure SQL Edge. The database(s) are made available directly in the Codespace/VS Code through the MSSQL extension with a connection labeled **LocalDev**. The default sa user password is set using the `.devcontainer/.env` file. The default SQL port is mapped to port 1433 in `.devcontainer/docker-compose.yml`.
 
 Node.js is a powerful platform for building fast, scalable network applications. With its event-driven, non-blocking I/O model, Node.js is ideal for data-intensive real-time applications that run across distributed devices. The combination of Node.js and Azure SQL Database enables developers to create high-performance applications with ease.
 

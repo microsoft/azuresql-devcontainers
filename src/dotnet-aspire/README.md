@@ -55,7 +55,7 @@ This dev container includes a preconfigured database, tailored for use with the 
 
 This template creates two containers, one for the dev container that includes .NET and Aspire, and one for Microsoft SQL Server. You're connected to the Ubuntu, and from within that container, the MS SQL container is available on **`localhost`** port 1433. The dev container also includes supporting scripts in the `.devcontainer/sql` folder used to configure the `Library` sample database.
 
-The SQL container is deployed from the latest developer edition of Microsoft SQL 2022. The database(s) are made available directly in the Codespace/VS Code through the MSSQL extension with a connection labeled **LocalDev**. The default sa user password is set using the `.devcontainer/.env` file. The default SQL port is mapped to port 1433 in `.devcontainer/docker-compose.yml`.
+The database container (SQL-Library) is deployed from the latest developer edition of Azure SQL Edge. The database(s) are made available directly in the Codespace/VS Code through the MSSQL extension with a connection labeled **LocalDev**. The default sa user password is set using the `.devcontainer/.env` file. The default SQL port is mapped to port 1433 in `.devcontainer/docker-compose.yml`.
 
 .NET Aspire is a cutting-edge framework crafted for developing cloud-native applications, with a primary focus on containerized environments. Aspire, built with .NET Core, empowers developers to architect scalable and resilient applications optimized for cloud deployment.
 
