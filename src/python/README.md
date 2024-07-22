@@ -12,25 +12,18 @@ A development environment for Python and Azure SQL, enabling streamlined local d
 
 This Dev Container template enables you to effortlessly explore **Python** and **Azure SQL**. In just a few simple steps, you can dive into the capabilities of these powerful technologies.
 
-A **development container** (Dev Container for short) is a running [Docker](https://www.docker.com) container with a well-defined tool/runtime stack and its prerequisites. You can try out Dev Containers with **[GitHub Codespaces](https://github.com/features/codespaces)** or **[Visual Studio Code Dev Containers](https://aka.ms/vscode-remote/containers)**.
+A **development container** (dev container for short) essentially packages up your project's development environment using the Development Container Specification. This specification enriches your container with metadata and content necessary to enable development from inside a container.
 
-To learn more details about all the Azure SQL Database templates, you can explore the template repository at [aka.ms/azuresql-devcontainers](https://aka.ms/azuresql-devcontainers). This repository includes comprehensive information for each Azure SQL template. To learn more about Dev Containers, visit [containers.dev](https://containers.dev/) website, where you find a diverse range of templates.
+ You can try out dev containers with **[GitHub Codespaces](https://github.com/features/codespaces)** or **[Visual Studio Code Dev Containers](https://aka.ms/vscode-remote/containers)**.
 
-> **Note:**
-> If you already have a Codespace or Dev Container, you can jump to the [About this template](#about-this-template) section.
+To learn more details about all the Azure SQL Database templates, you can explore the template repository at [aka.ms/azuresql-devcontainers-repo](https://aka.ms/azuresql-devcontainers-repo). This repository includes comprehensive information for each Azure SQL template. To learn more about Dev Containers, visit [containers.dev](https://containers.dev/) website, where you find a diverse range of templates.
+
+> [!NOTE]
+> If you already have a VS Code Dev Container or a GitHub Codespace, you can jump to the [About this template](#about-this-template) section.
 
 ## Setting up the development container
 
-### GitHub Codespaces
-
-Follow these steps to open this sample in a Codespaces:
-
-1. Select the Code drop-down menu and select the **Codespaces** tab.
-2. Select on **Create codespaces on main** at the bottom of the pane.
-
-For more info, check out the [GitHub documentation](https://docs.github.com/en/free-pro-team@latest/github/developing-online-with-codespaces/creating-a-codespace#creating-a-codespace).
-
-### Visual Studio Code - Dev Containers
+### Visual Studio Code
 
 Follow these steps to open this sample in a container using the VS Code Dev Containers extension:
 
@@ -38,7 +31,7 @@ Follow these steps to open this sample in a container using the VS Code Dev Cont
 2. To use this repository, you can either open the repository in an isolated Docker volume:
     - Press `F1` or `Ctrl+Shift+P` to open the command palette.
     - Select the **Dev Containers: New Dev Container** command.
-    - Select the desired dev container template for Azure SQL Database, typing `*Azure SQL*`.
+    - Select the desired dev container template for Azure SQL Database, typing **Azure SQL**.
     - Select the **Python and Azure SQL (python)** template
     - Wait for the container to build.
         - Visual Studio Code builds the container based on the selected configuration.
@@ -46,51 +39,109 @@ Follow these steps to open this sample in a container using the VS Code Dev Cont
         - Subsequent builds are faster.
     - Once the container is built, the repository opens in the dev container.
 
-> **Note:**
+For more information, see the [Dev Containers tutorial](https://code.visualstudio.com/docs/devcontainers/tutorial).
+
+> [!NOTE]
 > Under the hood, this will use the **Dev Containers: Clone Repository in Container Volume...** command to clone the source code in a Docker volume instead of the local filesystem. [Volumes](https://docs.docker.com/storage/volumes/) are the preferred mechanism for persisting container data.
+
+### GitHub Codespaces
+
+To set up and use a dev container with GitHub Codespaces, follow these steps:
+
+1. **Prerequisites**
+    - Ensure you have access to GitHub Codespaces.
+    - Ensure your repository is hosted on GitHub.
+
+2. **Create or Open a Codespace**
+    - Navigate to your repository on GitHub.
+    - Click on the **Code** button, then select **Codespaces**.
+    - Click **New codespace** to create a new one or **...** next to an existing codespace to open it.
+
+3. **Set Up the Development Container**
+    - Once your codespace is running, open the command palette by pressing `F1` or `Ctrl+Shift+P`.
+    - Type and select **Dev Containers: Add Development Container Configuration Files...**.
+    - From the list, select **Show All Definitions...**.
+    - Type **Azure SQL** to filter the list.
+    - Select the **Python and Azure SQL (python)** template.
+    - The selected template will be added to your repository, creating a `.devcontainer` folder with configuration files.
+
+4. **Rebuild the Codespace**
+    - To apply the new configuration, you need to rebuild the codespace.
+    - Open the command palette by pressing `F1` or `Ctrl+Shift+P` again.
+    - Type and select **Codespaces: Rebuild Container**.
+    - Wait for the container to rebuild. This might take a few minutes the first time as it pulls and sets up the necessary images and configurations.
+
+5. **Using the Dev Container**
+    - Once the container is built, your codespace will restart in the new development environment.
+    - You can now start exploring and developing with the preconfigured Python and Azure SQL setup.
+
+> [!NOTE]
+> The `.devcontainer` folder includes configuration files like `devcontainer.json`, `docker-compose.yml`, and supporting scripts for setting up and managing the development environment.
 
 ### About this template
 
-This dev container includes a preconfigured database, specifically tailored for use with Python. This database serves as a foundation for demonstrating how the Python component interacts with Azure SQL.
+This Dev Container includes a preconfigured database, specifically tailored for use with Python. This database serves as a foundation for demonstrating how Python interacts with Azure SQL.
 
-This template creates two containers, one for the dev container that includes Python, and one for Microsoft SQL Server. You will be connected to the Ubuntu container, and from within that container, the MS SQL container will be available on localhost port 1433. The dev container also includes supporting scripts in the `.devcontainer/sql` folder used to configure the Library sample database.
+This template creates two containers: one for the container that includes Python, and one for the database. You will be connected to the Ubuntu environment, and from within that container, the database container will be available on **`localhost`** port 1433. The dev container also includes a set of VS Code tasks that can help you to verify the database schema and data, as well as build and publish the database project to the database container.
 
-The database container (SQL-Library) is deployed from the latest developer edition of Azure SQL Edge. The database(s) are made available directly in the Codespace/VS Code through the MSSQL extension with a connection labeled **LocalDev**. The default sa user password is set using the `.devcontainer/.env` file. The default SQL port is mapped to port 1433 in `.devcontainer/docker-compose.yml`.
+The database container (SQL-Library) is deployed from the latest developer edition of Azure SQL Edge. The database(s) are made available directly in VS Code through the MSSQL extension with a connection labeled **LocalDev**. The default `sa` user password is set using the `.devcontainer/.env` file. The default SQL port is mapped to port `1433` in `.devcontainer/docker-compose.yml`.
 
 Python is a versatile and widely-used programming language known for its simplicity and readability. It is especially popular in data science, machine learning, and web development. Combining Python with Azure SQL Database allows developers to create robust, scalable, and efficient applications quickly and easily.
 
-> **Note:**
+> [!IMPORTANT]
 > While the database container employs a development version of Azure SQL Edge , all database development within this dev container can be validated for Azure SQL Database using the SQL Database Project. The SQL Database project is preconfigured with the target platform set as Azure SQL Database.
+>
+> To learn more about the SQL Database Projects extension, visit the [Getting started with the SQL Database Projects extension](/azure-data-studio/extensions/sql-database-project-extension-getting-started).
+
+### Preconfigured Environment
+
+All of the below tools and utilities are pre-loaded in the dev container. You don't need to download or install!
+
+- **Python** : The environment includes your preferred programming language/framework preinstalled and configured, ready for development.
+- **Azure CLI**: Tools for managing Azure resources and deployments.
+- **Azure Developer CLI**: A command-line interface providing a unified scripting experience for managing and developing Azure resources.
+- **Docker CLI**: Allows building and managing Docker containers from within another container.
+- **Azure SQL Database**: The `library` database was created, validated, and is ready for use. This database gives you full compatibility with Azure SQL Database.
+- **SQLCMD**: A command-line utility you can use to interact with the database, run queries, and more.
+- **SqlPackage**: Command-line utility for deploying database changes, including schema updates and data migrations.
+
+### Visual Studio Code Extensions
+
+- `ms-mssql.mssql`: SQL Server extension for connecting and querying SQL databases.
+- `ms-mssql.sql-database-projects`: Extension for managing SQL Database projects, allowing for streamlined schema changes and deployment.
+- `github.copilot`: AI-powered code completion for enhanced productivity.
+- `ms-azuretools.vscode-docker`: Docker extension for managing containers directly from Visual Studio Code.
+- `github.codespaces`: Extension for working with GitHub Codespaces.
+- `ms-azuretools.vscode-docker`: Docker extension for managing containers.
+
+> [!TIP]
+> There will be more extensions available depending on the template you choose. You can install additional extensions by opening the Extensions view in Visual Studio Code and searching for the desired extension.
 
 #### Visual Code Tasks
 
 This dev container template includes multiple tasks that can help with common actions. You can access these tasks by opening the Command Palette in VS Code. Here's how:
 
 1. To open the Command Palette, press <kbd>F1</kbd> or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>.
-2. Type "Run Task" and select "Tasks: Run Task".
+2. Type **Run Task** and select **Tasks: Run Task**.
 3. Choose the task you want to run from the list.
 
-##### Verify database schema and data
+##### 1. Verify database schema and data
 
 This task opens the `verifyDatabase.sql` file in your workspace and executes the SQL query using the `ms-mssql.mssql` extension. This task is optional however it can help you to become familiar with the sample `Library` database tables and data included in this dev container template.
 
-##### Build SQL Database project
+##### 2. Build SQL Database project
 
 This task builds the SQL Database project. It runs the command `dotnet build` in the `database/Library` directory of your workspace.
 
 This task is optional, but it's useful to verify the database schema. You can use this SQL Database project to make changes to the database schema and deploy it to the SQL Server container.
 
-#### Publish SQL Database project
+##### 3. Publish SQL Database project
 
 This task involves deploying the SQL Database project to your SQL Server container. It executes the `postCreateCommand.sh` script found in the `.devcontainer/sql` directory of your workspace.
 
 The `postCreateCommand.sh` script requires one argument: the path to the directory containing the .dacpac file for the SQL Database project. In this scenario, that directory is `database/Library/bin/Debug`.
 
-It utilizes the sqlpackage command-line utility to update the database schema using the .dacpac file, employing authentication credentials from the `.env` file situated in the `.devcontainer` directory.
-
-##### Trust HTTPS certificate for Python
-
-This task trusts the HTTPS certificate for the Python project. It runs the command `dotnet dev-certs https --trust`.
+It utilizes the `SqlPackage` command-line utility to update the database schema using the .dacpac file, employing authentication credentials from the `.devcontainer/.env` file.
 
 ### Changing the sa password
 
@@ -103,7 +154,7 @@ The password must comply with the following rules:
 
 ### Database deployment
 
-By default, a demo database titled `Library` is created using a DAC package. The deployment process is automated through the `postCreateCommand.sh` script, which is specified in the devcontainer.json configuration:
+By default, a demo database titled `Library` is created using a dacpac file. The deployment process is automated through the `postCreateCommand.sh` script, which is specified in the `devcontainer.json' configuration:
 
 ```json
 "postCreateCommand": "bash .devcontainer/sql/postCreateCommand.sh 'database/Library/bin/Debug'"
@@ -113,14 +164,19 @@ By default, a demo database titled `Library` is created using a DAC package. The
 
 The `postCreateCommand.sh` script handles the database deployment by performing the following steps:
 
-1. Loads the `SA_PASSWORD` from the `.env` file.
+1. Loads the `SA_PASSWORD` from the `.devcontainer/.env` file.
 1. Waits for the SQL Server to be ready by attempting to connect multiple times.
 1. Checks for .dacpac files in the specified directory (`database/Library/bin/Debug`).
-1. Deploys each .dacpac file found to the SQL Server.
+1. Deploys each .dacpac file found to the database.
 
 #### Using the SQL Database Projects Extension
 
-You can use the SQL Database Projects extension to deploy the database schema. The `Library.sqlproj` project is located in the `database/Library` folder and can be built using the Build SQL Database project task. The output .dacpac files should be placed in the `./bin/Debug` folder for deployment.
+To modify the database schema, utilize the SQL Database Projects extension. This allows you to build and publish changes directly from VS Code to your local database included in this development environment. Use the pre-built VS Code tasks for building (`2. Build SQL Database project`) and publishing (`3. Publish SQL Database project`). The build process will update the `.dacpac` file and the project definition, which is located in the `./bin/Debug` folder.
+
+> [!TIP]
+> With this demo project, you can easily use the dacpac artifact created by SQL Database Projects and deploy it to Azure SQL Database using the Azure SQL Action for GitHub Actions. This process streamlines your workflow and ensures seamless integration with your production environment.
+
+To learn more about the SQL Database Projects extension, visit the [Getting started with the SQL Database Projects extension](/azure-data-studio/extensions/sql-database-project-extension-getting-started).
 
 ### Adding another service
 
