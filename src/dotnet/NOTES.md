@@ -113,14 +113,14 @@ This dev container template includes multiple tasks that can help with common ac
 1. To open the Command Palette, press <kbd>F1</kbd> or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>. Type **Run Task** and select **Tasks: Run Task**.
 ![Run VS Code task](./images/vscode-azure-sql-devcontainers-tasks.png)
 1. Choose one of the tasks you want to run from the built-in list included in this Dev Container template.
-![VS Code task list](./images/vscode-azure-sql-devcontainers-task-list.png)
+![VS Code task list](./images/vscode-azure-sql-devcontainers-task-list-dotnet.png)
 
 ##### 1. Verify database schema and data
 
 This task is optional, however it can help you to become familiar with the sample `Library` database tables and data included in this dev container template.
 
 From the built-in tasks included in this dev container template, select `1. Verify database schema and data` to run this task.
-![VS Code task list](./images/vscode-azure-sql-devcontainers-task-list.png)
+![VS Code task list](./images/vscode-azure-sql-devcontainers-task-list-dotnet.png)
 
 Select `Continue without scanning the task output` when prompted.
 ![Run VS Code task - Continue](./images/vscode-azure-sql-devcontainers-task-continue.png)
@@ -138,8 +138,8 @@ The results of the SQL script will be displayed in the output window.
 
 This task is optional, but it's useful to verify the database schema. You can use this SQL Database project to make changes to the database schema and deploy it to the SQL Server container.
 
-From the built-in tasks, select `2. Build SQL Database project` to run this task. 
-![VS Code task list](./images/vscode-azure-sql-devcontainers-task-list.png)
+From the built-in tasks, select `2. Build SQL Database project` to run this task.
+![VS Code task list](./images/vscode-azure-sql-devcontainers-task-list-dotnet.png)
 
 Select `Continue without scanning the task output` when prompted.
 ![Run VS Code task - Continue](./images/vscode-azure-sql-devcontainers-task-continue.png)
@@ -150,7 +150,7 @@ This task builds the SQL Database project. It runs the command `dotnet build` in
 ##### 3. Publish SQL Database project
 
 From the built-in tasks, select `3. Publish SQL Database project` to run this task. 
-![VS Code task list](./images/vscode-azure-sql-devcontainers-task-list.png)
+![VS Code task list](./images/vscode-azure-sql-devcontainers-task-list-dotnet.png)
 
 Select `Continue without scanning the task output` when prompted.
 ![Run VS Code task - Continue](./images/vscode-azure-sql-devcontainers-task-continue.png)
@@ -164,7 +164,14 @@ It utilizes the `SqlPackage` command-line utility to update the database schema 
 
 ##### 4. Trust HTTPS certificate for .NET
 
-This task is optional, however it can be helpful to trusts the local HTTPS certificate for your .NET project. This task runs the command `dotnet dev-certs https --trust`.
+From the built-in tasks included in this dev container template, select `5. Trust HTTPS certificate for .NET` to run this task.
+![VS Code task list](./images/vscode-azure-sql-devcontainers-task-list-dotnet.png)
+
+Select `Continue without scanning the task output` when prompted.
+![Run VS Code task - Continue](./images/vscode-azure-sql-devcontainers-task-continue.png)
+
+This task is optional, however it can be helpful to trusts the local HTTPS certificate for your .NET Aspire project. This task runs the command `dotnet dev-certs https --trust`.
+![VS Code task - .NET HTTPS certificate](./images/vscode-azure-sql-devcontainers-task-dotnet-cert.png)
 
 ### Changing the sa password
 
