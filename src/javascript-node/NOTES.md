@@ -106,31 +106,61 @@ All of the below tools and utilities are pre-loaded in the dev container. You do
 > [!TIP]
 > There will be more extensions available depending on the template you choose. You can install additional extensions by opening the Extensions view in Visual Studio Code and searching for the desired extension.
 
-#### Visual Code Tasks
+#### Visual Studio Code Tasks
 
 This dev container template includes multiple tasks that can help with common actions. You can access these tasks by opening the Command Palette in VS Code. Here's how:
 
-1. To open the Command Palette, press <kbd>F1</kbd> or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>.
-2. Type **Run Task** and select **Tasks: Run Task**.
-3. Choose the task you want to run from the list.
+1. To open the Command Palette, press <kbd>F1</kbd> or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>. Type **Run Task** and select **Tasks: Run Task**.
+![Run VS Code task](./images/vscode-azure-sql-devcontainers-tasks.png)
+1. Choose one of the tasks you want to run from the built-in list included in this Dev Container template.
+![VS Code task list](./images/vscode-azure-sql-devcontainers-task-list.png)
 
 ##### 1. Verify database schema and data
 
-This task opens the `verifyDatabase.sql` file in your workspace and executes the SQL query using the `ms-mssql.mssql` extension. This task is optional however it can help you to become familiar with the sample `Library` database tables and data included in this dev container template.
+This task is optional, however it can help you to become familiar with the sample `Library` database tables and data included in this dev container template.
+
+From the built-in tasks included in this dev container template, select `1. Verify database schema and data` to run this task.
+![VS Code task list](./images/vscode-azure-sql-devcontainers-task-list.png)
+
+Select `Continue without scanning the task output` when prompted.
+![Run VS Code task - Continue](./images/vscode-azure-sql-devcontainers-task-continue.png)
+
+The task opens the `verifyDatabase.sql` file in your workspace and leaves the same ready to be executed using the `ms-mssql.mssql` extension. Then, select the "Run" button or press `F5` to execute the script.
+![Run VS Code task - Run SQL Script](./images/vscode-azure-sql-devcontainers-task-sql-run.png)
+
+Select the built-in connection **LocalDev** to connect to the database and execute the script. 
+![Run VS Code task - SQL connection profile](./images/vscode-azure-sql-devcontainers-task-sql-profile.png)
+
+The results of the SQL script will be displayed in the output window.
+![Run VS Code task - SQL script results](./images/vscode-azure-sql-devcontainers-task-sql-results.png)
 
 ##### 2. Build SQL Database project
 
-This task builds the SQL Database project. It runs the command `dotnet build` in the `database/Library` directory of your workspace.
-
 This task is optional, but it's useful to verify the database schema. You can use this SQL Database project to make changes to the database schema and deploy it to the SQL Server container.
 
+From the built-in tasks, select `2. Build SQL Database project` to run this task. 
+![VS Code task list](./images/vscode-azure-sql-devcontainers-task-list.png)
+
+Select `Continue without scanning the task output` when prompted.
+![Run VS Code task - Continue](./images/vscode-azure-sql-devcontainers-task-continue.png)
+
+This task builds the SQL Database project. It runs the command `dotnet build` in the `database/Library` directory of your workspace.
+![Run VS Code task - SQL Database project build](./images/vscode-azure-sql-devcontainers-task-project-build.png)
+
 ##### 3. Publish SQL Database project
+
+From the built-in tasks, select `3. Publish SQL Database project` to run this task. 
+![VS Code task list](./images/vscode-azure-sql-devcontainers-task-list.png)
+
+Select `Continue without scanning the task output` when prompted.
+![Run VS Code task - Continue](./images/vscode-azure-sql-devcontainers-task-continue.png)
 
 This task involves deploying the SQL Database project to your SQL Server container. It executes the `postCreateCommand.sh` script found in the `.devcontainer/sql` directory of your workspace.
 
 The `postCreateCommand.sh` script requires one argument: the path to the directory containing the .dacpac file for the SQL Database project. In this scenario, that directory is `database/Library/bin/Debug`.
 
 It utilizes the `SqlPackage` command-line utility to update the database schema using the .dacpac file, employing authentication credentials from the `.devcontainer/.env` file.
+![Run VS Code task - SQL Database project publish](./images/vscode-azure-sql-devcontainers-task-project-publish.png)authentication credentials from the `.devcontainer/.env` file.
 
 ### Changing the sa password
 
