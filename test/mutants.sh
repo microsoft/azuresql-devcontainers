@@ -3,7 +3,8 @@
 # committed tree (never the working tree). The python template is brought up from that copy and
 # the smoke test must fail with the check the bug breaks.
 #
-# Proof that a mutant ran: the replacement must match exactly once; the workspace the stack ran
+# A mutant may edit several places in one file: separate the texts and the replacements with ";;".
+# Proof that a mutant ran: each replacement must match exactly once; the workspace the stack ran
 # from must contain the mutated text; and the log must contain the expected "FAIL: <check>" line,
 # which only a smoke-test run prints. A mutant that fails some other way counts as survived.
 #
@@ -20,7 +21,7 @@ mkdir -p "$OUT"
 # id | file | text | replacement | check that must fail
 MUTANTS='seed-row|src/python/database/Library/postDeployment.sql|IF NOT EXISTS (SELECT 1 FROM dbo.books_authors WHERE author_id = 5 AND book_id = 1023)|IF 1 = 0|S5 24 books_authors
 no-publish|src/python/.devcontainer/sql/postCreateCommand.sh|sqlpackage /Action:Publish|true /Action:Publish|S5 5 authors
-engine-2022|src/python/.devcontainer/docker-compose.yml|mssql/server:2025-latest|mssql/server:2022-latest|S4 engine major version 17
+engine-2022|src/python/.devcontainer/docker-compose.yml|mssql/server:2025-latest;;MSSQL_PID: EnterpriseDeveloper|mssql/server:2022-latest;;MSSQL_PID: Developer|S4 engine major version 17
 edition-express|src/python/.devcontainer/docker-compose.yml|MSSQL_PID: EnterpriseDeveloper|MSSQL_PID: Express|S4 edition
 target-sql170|src/python/database/Library/Library.sqlproj|SqlAzureV12DatabaseSchemaProvider|Sql170DatabaseSchemaProvider|S10 Azure target rejects fixture
 sample-query|test/python/test_sql_connection.py|FROM dbo.books|FROM dbo.authors|S7 mssql-python sample prints 24
@@ -32,8 +33,11 @@ while IFS='|' read -r id file from to check <&3; do
     dir="$OUT/$id"
     mkdir -p "$dir/tree"
     git -C "$ROOT" archive HEAD | tar -x -C "$dir/tree"
-    FROM=$from TO=$to perl -0pi -e '$n = s/\Q$ENV{FROM}\E/$ENV{TO}/g; END { exit($n == 1 ? 0 : 1) }' "$dir/tree/$file" ||
-        { echo "mutant $id: '$from' does not occur exactly once in $file" >&2; exit 2; }
+    FROM=$from TO=$to perl -0pi -e '
+        @f = split /;;/, $ENV{FROM}; @t = split /;;/, $ENV{TO};
+        for $i (0 .. $#f) { $n = s/\Q$f[$i]\E/$t[$i]/g; $bad = 1 if $n != 1 }
+        END { exit($bad || @f != @t ? 1 : 0) }' "$dir/tree/$file" ||
+        { echo "mutant $id: each of '$from' must occur exactly once in $file" >&2; exit 2; }
 
     rc=0
     (
@@ -47,10 +51,13 @@ while IFS='|' read -r id file from to check <&3; do
         test/*) ran=test-smoke/$(basename "$file") ;;
     esac
     ws=$(cat "$dir"/ws/*.workspace)
-    if ! grep -qF -- "$to" "$ws/$ran"; then
-        echo "mutant $id: the workspace $ws does not contain the mutation; nothing was proven" >&2
-        exit 2
-    fi
+    nl=$'\n'
+    while IFS= read -r edit; do
+        if ! grep -qF -- "$edit" "$ws/$ran"; then
+            echo "mutant $id: the workspace $ws does not contain '$edit'; nothing was proven" >&2
+            exit 2
+        fi
+    done <<<"${to//;;/$nl}"
     if [ "$rc" -ne 0 ] && grep -q "^FAIL: $check" "$dir/log"; then
         killed=$((killed + 1))
         echo "KILLED   $id: '$check' failed (exit $rc; ran from $ws)"

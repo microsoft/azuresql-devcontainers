@@ -11,7 +11,8 @@ source "$(dirname "$0")/common.sh"
 onExit() {
     local rc=$?
     if [ "$rc" -ne 0 ]; then
-        echo "build.sh: failed (exit $rc), tearing down" >&2
+        echo "build.sh: failed (exit $rc). Last SQL Server log lines, then teardown:" >&2
+        if [ -n "$PROJECT" ]; then docker compose -p "$PROJECT" logs --no-color --tail 15 db >&2 || echo "(no db logs)" >&2; fi
         teardown
     fi
 }
