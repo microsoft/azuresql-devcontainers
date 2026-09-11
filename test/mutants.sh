@@ -18,17 +18,20 @@ rm -rf "$OUT"
 mkdir -p "$OUT"
 
 # shellcheck disable=SC2016 # literal shell text in the mutants
-# id | file | text | replacement | check that must fail
-MUTANTS='seed-row|src/python/database/Library/postDeployment.sql|IF NOT EXISTS (SELECT 1 FROM dbo.books_authors WHERE author_id = 5 AND book_id = 1023)|IF 1 = 0|S5 24 books_authors
-no-publish|src/python/.devcontainer/sql/postCreateCommand.sh|sqlpackage /Action:Publish|true /Action:Publish|S5 5 authors
-engine-2022|src/python/.devcontainer/docker-compose.yml|mssql/server:2025-latest;;MSSQL_PID: EnterpriseDeveloper|mssql/server:2022-latest;;MSSQL_PID: Developer|S4 engine major version 17
-edition-express|src/python/.devcontainer/docker-compose.yml|MSSQL_PID: EnterpriseDeveloper|MSSQL_PID: Express|S4 edition
-target-sql170|src/python/database/Library/Library.sqlproj|SqlAzureV12DatabaseSchemaProvider|Sql170DatabaseSchemaProvider|S10 Azure target rejects fixture
-sample-query|test/python/test_sql_connection.py|FROM dbo.books|FROM dbo.authors|S7 mssql-python sample prints 24
-unbounded-wait|src/python/.devcontainer/sql/postCreateCommand.sh|if [ "$attempt" -eq 10 ]; then exit 1; fi|if [ "$attempt" -eq 10 ]; then break; fi|S11 wrong password fails loudly'
+# id | file | check that must fail | text | replacement (last, so it may contain |)
+MUTANTS='seed-row|src/python/database/Library/postDeployment.sql|S5 24 books_authors|IF NOT EXISTS (SELECT 1 FROM dbo.books_authors WHERE author_id = 5 AND book_id = 1023)|IF 1 = 0
+no-publish|src/python/.devcontainer/sql/postCreateCommand.sh|S5 5 authors|sqlpackage /Action:Publish|true /Action:Publish
+engine-2022|src/python/.devcontainer/docker-compose.yml|S4 engine major version 17|mssql/server:2025-latest;;MSSQL_PID: EnterpriseDeveloper|mssql/server:2022-latest;;MSSQL_PID: Developer
+edition-express|src/python/.devcontainer/docker-compose.yml|S4 edition|MSSQL_PID: EnterpriseDeveloper|MSSQL_PID: Express
+target-sql170|src/python/database/Library/Library.sqlproj|S10 Azure target rejects fixture|SqlAzureV12DatabaseSchemaProvider|Sql170DatabaseSchemaProvider
+sample-query|test/python/test_sql_connection.py|S7 mssql-python sample prints 24|FROM dbo.books|FROM dbo.authors
+unbounded-wait|src/python/.devcontainer/sql/postCreateCommand.sh|S11 wrong password fails loudly|if [ "$attempt" -eq 10 ]; then exit 1; fi|if [ "$attempt" -eq 10 ]; then break; fi
+sqlcmd-wrong-arch|src/python/.devcontainer/sql/installSQLtools.sh|S1/S2 native sqlcmd|arch=$(dpkg --print-architecture)|arch=amd64
+build-failure-ignored|src/python/.devcontainer/sql/postCreateCommand.sh|S16 a failed build is never published|dotnet build database/Library|dotnet build database/Library || true
+outputs-removed-after-up|src/python/.devcontainer/sql/postCreateCommand.sh|S5 dacpac built during this up|/TargetTrustServerCertificate:True|/TargetTrustServerCertificate:True && rm -rf database/Library/bin database/Library/obj'
 
 total=0 killed=0
-while IFS='|' read -r id file from to check <&3; do
+while IFS='|' read -r id file check from to <&3; do
     total=$((total + 1))
     dir="$OUT/$id"
     mkdir -p "$dir/tree"

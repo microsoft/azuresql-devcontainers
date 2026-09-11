@@ -7,6 +7,11 @@ FAILED=()
 SKIPPED=()
 SMOKE_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 WORKSPACE=$(cd "$SMOKE_DIR/.." && pwd)
+DACPAC=$WORKSPACE/database/Library/bin/Debug/Library.dacpac
+
+# S5: record what the up left behind now, before any check (S9 builds the project again).
+BUILT_BY_UP=no
+if [ -f "$DACPAC" ] && [ "$DACPAC" -nt "$SMOKE_DIR/.before-up" ]; then BUILT_BY_UP=yes; fi
 
 pass() { echo "PASS: $1"; }
 fail() { echo "FAIL: $1${2:+ ($2)}" >&2; FAILED+=("$1"); }
@@ -33,13 +38,22 @@ checkMatches() {
     if [ "$rc" -eq 0 ] && grep -Eq -- "$regex" <<<"$out"; then pass "$label"; else fail "$label" "exit $rc, no match for /$regex/ in: $(tail -c 400 <<<"$out")"; fi
 }
 
-# checkExtension ID: the extension is installed in a VS Code server in this container.
-checkExtension() {
-    local dir
-    for dir in "$HOME"/.vscode-server "$HOME"/.vscode-server-insiders "$HOME"/.vscode-remote; do
-        if compgen -G "$dir/extensions/$1-*" >/dev/null; then pass "extension $1"; return 0; fi
-    done
-    fail "extension $1" "not found under any VS Code server in $HOME"
+# The machine an ELF file is built for, from its header: aarch64, x86_64, or other.
+elfMachine() {
+    local header
+    header=$(od -An -tx1 -N20 "$1" | tr -d ' \n')
+    case $header in
+        7f454c46*b700) echo aarch64 ;;
+        7f454c46*3e00) echo x86_64 ;;
+        *) echo "other($header)" ;;
+    esac
+}
+
+# checkNative LABEL FILE: FILE is built for this container's architecture, not run under emulation.
+checkNative() {
+    local machine
+    machine=$(elfMachine "$(readlink -f "$2")") || machine="unreadable"
+    if [ "$machine" = "$EXPECTED_ARCH" ]; then pass "$1"; else fail "$1" "$2 is $machine, container is $EXPECTED_ARCH"; fi
 }
 
 sql() { sqlcmd -S localhost -U sa -C -b -h -1 -W -Q "SET NOCOUNT ON; $1"; }
@@ -64,7 +78,15 @@ sdkSettingHasDotnet() {
     [ -n "$dir" ] && [ -x "$dir/dotnet" ] && [ -n "$(ls "$dir/sdk")" ]
 }
 
-dacpacModel() { unzip -p "$WORKSPACE/database/Library/bin/Debug/Library.dacpac" model.xml | sed -n 2p; }
+dacpacModel() { unzip -p "$DACPAC" model.xml | sed -n 2p; }
+
+# Microsoft's package (version like 2.90.0-1~bookworm), not a distribution's older build.
+azureCliFromMicrosoft() {
+    local version
+    version=$(dpkg-query -W -f '${Version}' azure-cli)
+    echo "azure-cli $version"
+    [[ $version =~ -1~[a-z]+$ ]]
+}
 
 # S10: the fixture builds under Sql170 (so it is valid T-SQL) and fails under the project's own target.
 buildWithFixture() { # DSP-override-or-empty
@@ -90,6 +112,14 @@ checkTools() { # EXPECTED-TASK-LABELS joined by |
     checkMatches "S6 sqlcmd v1.10.0" 'v?1\.10\.0' sqlcmd --version
     checkMatches "S6 sqlpackage 170.5.x" '^170\.5\.' sqlpackage /version
     checkMatches "S6 dotnet $EXPECTED_DOTNET_MAJOR.x" "^$EXPECTED_DOTNET_MAJOR\." dotnet --version
+    checkNative "S1/S2 native sqlcmd" "$(command -v sqlcmd)"
+    checkNative "S1/S2 native dotnet host" "$(command -v dotnet)"
+    checkNative "S1/S2 native sqlpackage launcher" "$(command -v sqlpackage)"
+    check "S6 Azure CLI from Microsoft's repository" azureCliFromMicrosoft
+    checkMatches "S6 Bicep CLI" '^Bicep CLI version ' bicep --version
+    checkNative "S1/S2 native bicep" "$(command -v bicep)"
+    checkNative "S1/S2 native azd" "$(command -v azd)"
+    checkNative "S1/S2 native docker CLI" "$(command -v docker)"
     check "S9 build against SqlAzureV12" dotnet build "$WORKSPACE/database/Library"
     checkMatches "S9 dacpac targets SqlAzureV12" 'DspName="Microsoft\.Data\.Tools\.Schema\.Sql\.SqlAzureV12DatabaseSchemaProvider"' dacpacModel
     checkMatches "S9 dacpac model is case-insensitive" 'CollationCaseSensitive="False"' dacpacModel
@@ -97,6 +127,21 @@ checkTools() { # EXPECTED-TASK-LABELS joined by |
     check "S10 Azure target rejects fixture with $S10_ERROR" azureTargetRejectsFixture
     checkEquals "F8 task labels" "$1" taskLabels
     check "F8 SQL Database Projects SDK setting points at the SDK" sdkSettingHasDotnet
+}
+
+# S16: with an object the Azure target rejects, postCreateCommand.sh stops at the build and publishes
+# nothing, even though a dacpac from the last good build is still there.
+failedBuildNeverPublishes() {
+    local copy out rc=0
+    copy=$(mktemp -d "$SMOKE_DIR/s16.XXXX") # under the workspace, so a workspace NuGet.Config applies
+    mkdir -p "$copy/.devcontainer/sql" "$copy/database"
+    cp "$WORKSPACE/.devcontainer/sql/postCreateCommand.sh" "$copy/.devcontainer/sql/"
+    cp -R "$WORKSPACE/database/Library" "$copy/database/Library"
+    cp "$SMOKE_DIR"/fixtures/azure-incompatible/*.sql "$copy/database/Library/"
+    out=$(bash "$copy/.devcontainer/sql/postCreateCommand.sh" 2>&1) || rc=$?
+    rm -rf "$copy"
+    echo "exit $rc; last lines: $(tail -n 2 <<<"$out")"
+    [ "$rc" -ne 0 ] && grep -q "failed during: build database/Library" <<<"$out" && ! grep -q "Successfully published" <<<"$out"
 }
 
 wrongPasswordFailsLoudly() {
@@ -110,11 +155,12 @@ wrongPasswordFailsLoudly() {
 checkDatabase() {
     checkEquals "S4 engine major version 17" 17 sql "SELECT SERVERPROPERTY('ProductMajorVersion')"
     checkEquals "S4 edition" "Enterprise Developer Edition (64-bit)" sql "SELECT SERVERPROPERTY('Edition')"
-    check "S5 dacpac built during this up" test "$WORKSPACE/database/Library/bin/Debug/Library.dacpac" -nt "$SMOKE_DIR/.before-up"
+    check "S5 dacpac built during this up" test "$BUILT_BY_UP" = yes
     checkLibraryCounts S5
     checkEquals "S5 view and procedure exist" 2 sql "SELECT COUNT(*) FROM Library.sys.objects WHERE object_id IN (OBJECT_ID('Library.dbo.vw_books_details'), OBJECT_ID('Library.dbo.stp_get_all_cowritten_books_by_author'))"
     check "S8 task 3 re-publishes" runTask "3. Publish SQL Database project"
     checkLibraryCounts S8
+    check "S16 a failed build is never published" failedBuildNeverPublishes
     check "S11 wrong password fails loudly" wrongPasswordFailsLoudly
 }
 

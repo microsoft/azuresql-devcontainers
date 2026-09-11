@@ -17,12 +17,13 @@ OUT=${GAUNTLET_OUT:-${TMPDIR:-/tmp}/azsqldc-gauntlet}
 BASE=${GAUNTLET_BASE:-main}
 DEVCONTAINER=${DEVCONTAINER:-npx -y @devcontainers/cli@0.89.0}
 TEMPLATES="dotnet dotnet-aspire javascript-node python"
-EXPECTED="source-state lint static controls tags s12 matrix mutation supply-chain"
+EXPECTED="source-state lint static controls tags extensions s12 matrix mutation supply-chain cleanup"
 PASSED=""
 SMOKE=.github/actions/smoke-test
 
 rm -rf "$OUT" # no layer may read a previous run's output
 mkdir -p "$OUT"
+docker images --format '{{.Repository}}:{{.Tag}}' | sort -u >"$OUT/images-before.txt"
 exec > >(tee "$OUT/gauntlet.log") 2>&1
 started=$(date +%s)
 
@@ -49,6 +50,40 @@ checkCommits() { # REPO BASE
     if grep -inE 'co-authored-by|claude|anthropic|generated with' <<<"$log"; then echo "M9: AI trailer or mention in a commit" >&2; return 1; fi
     if [ "$authors" != "Carlos Robles <contact@croblesm.com>" ]; then echo "M9: other authors: $authors" >&2; return 1; fi
     echo "M9: $(git -C "$1" rev-list --count "$2..HEAD") commits after $2, all by $authors, no AI trailer"
+}
+
+# filterSelects FILTERS-JSON PATH: the templates the paths filter selects for a change to PATH
+# (bash patterns: * also matches /, like the filter's ** here).
+filterSelects() {
+    jq -r 'to_entries[] | select(.key != "shared") | .key as $k | .value | flatten[] | "\($k)\t\(.)"' "$1" |
+        while IFS="$(printf '\t')" read -r key pattern; do
+            # shellcheck disable=SC2053 # the pattern is meant to glob
+            if [[ $2 == $pattern ]]; then echo "$key"; fi
+        done | sort -u | paste -sd' ' -
+}
+
+# checkFilters FILTERS-JSON: each template's own files select it, the shared test files select all four,
+# and files outside the tests select nothing.
+checkFilters() {
+    local path want got all="dotnet dotnet-aspire javascript-node python"
+    while IFS='=' read -r path want; do
+        got=$(filterSelects "$1" "$path")
+        if [ "$got" != "$want" ]; then echo "S15: a change to $path selects '$got', want '$want'" >&2; return 1; fi
+    done <<PATHS
+src/dotnet/.devcontainer/devcontainer.json=dotnet
+src/dotnet-aspire/.devcontainer/devcontainer.json=dotnet-aspire
+src/javascript-node/.devcontainer/devcontainer.json=javascript-node
+src/python/.devcontainer/devcontainer.json=python
+test/dotnet/test.sh=dotnet dotnet-aspire
+test/javascript-node/index.js=javascript-node
+test/python/test.sh=python
+test/test-utils/test-utils.sh=$all
+test/fixtures/azure-incompatible/documents.sql=$all
+.github/actions/smoke-test/build.sh=$all
+.github/workflows/test-pr.yaml=$all
+README.md=
+docs/images/x.png=
+PATHS
 }
 
 layerSourceState() {
@@ -124,20 +159,13 @@ layerStatic() {
     yaml2json .github/workflows/test-pr.yaml >"$OUT/test-pr.json"
     jq -e '(.true | has("pull_request") and has("schedule") and has("workflow_dispatch"))
         and (.jobs.test.strategy.matrix.runner == ["ubuntu-latest", "ubuntu-24.04-arm"])' "$OUT/test-pr.json" >/dev/null || die "S15: triggers or runners"
-    # S15: simulate the paths filter (bash patterns: * also matches /) for a change in each template.
+    # S15: simulate the paths filter on 13 representative paths.
     filters=$(jq -r '.jobs["detect-changes"].steps[] | select(.id == "filter") | .with.filters' "$OUT/test-pr.json")
     printf '%s\n' "$filters" >"$OUT/filters.yml"
     yaml2json "$OUT/filters.yml" >"$OUT/filters.json"
-    for t in $TEMPLATES; do
-        path="src/$t/.devcontainer/devcontainer.json"
-        got=$(jq -r 'to_entries[] | select(.key != "shared") | .key as $k | .value | flatten[] | "\($k)\t\(.)"' "$OUT/filters.json" |
-            while IFS="$(printf '\t')" read -r key pattern; do
-                # shellcheck disable=SC2053 # the pattern is meant to glob
-                if [[ $path == $pattern ]]; then echo "$key"; fi
-            done | sort -u | paste -sd' ' -)
-        [ "$got" = "$t" ] || die "S15: a change to $path selects '$got', want '$t'"
-    done
-    echo "S15: a change under src/<id>/ selects exactly <id> for all 4; actions SHA-pinned; amd64 + arm64 runners; PR, weekly, and manual triggers"
+    checkFilters "$OUT/filters.json" || die "S15: paths filter"
+    jq -e '.permissions["pull-requests"] == "read"' "$OUT/test-pr.json" >/dev/null || die "S15: paths-filter needs pull-requests: read"
+    echo "S15: paths filter: src/<id> and test/<id> select their templates, shared test files select all 4, other files none (13 paths); pull-requests: read; actions SHA-pinned; amd64 + arm64 runners; PR, weekly, and manual triggers"
 
     git ls-files | grep -E '(^|/)(CLAUDE|AGENTS|SPEC|EVIDENCE)\.md$|(^|/)\.claude/' && die "M9: an AI file is tracked"
     checkCommits "$ROOT" "$BASE"
@@ -163,28 +191,84 @@ layerControls() {
     plant "check-forbidden: build output" "FORBIDDEN: M5 no bin/ or obj/ tracked anywhere" "mkdir -p src/python/database/Library/bin && echo x >src/python/database/Library/bin/x.txt"
     plant "check-forbidden: binary file" "FORBIDDEN: M5 no binary files under src/" "printf 'a\\000b' >src/python/blob.dat"
     plant "check-forbidden: global prune" "FORBIDDEN: M6 no global destructive docker command" "echo 'docker system'' prune -af' >>test/python/test.sh"
-    plant "check-forbidden: script without pipefail" "FORBIDDEN: M8 every script has set -euo pipefail" "printf '#!/bin/sh\\necho hi\\n' >test/unsafe.sh"
+    plant "check-forbidden: script without pipefail" "FORBIDDEN: M8 every script starts with set -euo pipefail" "printf '#!/bin/sh\\necho hi\\n' >test/unsafe.sh"
+    # The round 1 verifier's spellings (F8): each must fail too.
+    plant "check-forbidden: uppercase registry host" "FORBIDDEN: S14/M4 no gated registry reference" "echo '# SQLDBPREVIEW.AZURE''CR.IO/azure-sql/db-dev' >>src/python/.devcontainer/docker-compose.yml"
+    plant "check-forbidden: REGISTRY_PASSWORD" "FORBIDDEN: M4 no registry credentials" "echo 'REGISTRY_''PASSWORD=x' >>src/python/.devcontainer/.env"
+    plant "check-forbidden: docker login with two spaces" "FORBIDDEN: M4 no registry credentials" "echo 'docker  lo''gin example.io' >>test/python/test.sh"
+    plant "check-forbidden: volume rm fed by docker volume ls" "FORBIDDEN: M6 no global destructive docker command" "echo 'docker volume r''m \$(docker volume ls -q)' >>test/python/test.sh"
+    plant "check-forbidden: rm fed by docker ps" "FORBIDDEN: M6 no global destructive docker command" "echo 'docker r''m -f \$(docker ps -aq)' >>test/python/test.sh"
+    plant "check-forbidden: xargs docker rm" "FORBIDDEN: M6 no global destructive docker command" "echo 'docker ps -aq | xargs docker r''m -f' >>test/python/test.sh"
+    plant "check-forbidden: pipefail only inside a function" "FORBIDDEN: M8 every script starts with set -euo pipefail" "printf '#!/bin/sh\\nf() {\\nset -euo pipefail\\n}\\necho hi\\n' >test/unsafe.sh"
     plant "check-forbidden: continue-on-error" "FORBIDDEN: S15 no continue-on-error in workflows" "echo '    continue-on-error: true' >>.github/workflows/test-pr.yaml"
 
     mkdir -p "$tmp/tags/dotnet/.devcontainer"
     cp src/dotnet/.devcontainer/Dockerfile "$tmp/tags/dotnet/.devcontainer/"
     jq '.options.imageVariant.proposals += ["10.0-nosuchdistro"]' src/dotnet/devcontainer-template.json >"$tmp/tags/dotnet/devcontainer-template.json"
     expectFail "check-tags: a proposal that doesn't exist" "MISSING: devcontainers/dotnet:2-10.0-nosuchdistro" test/test-utils/check-tags.sh "$tmp/tags"
+    # A real tag with no arm64 image (F7): pins the arm64 half of the check.
+    mkdir -p "$tmp/tags2/universal/.devcontainer"
+    # shellcheck disable=SC2016 # a literal ${templateOption:imageVariant}
+    printf 'FROM mcr.microsoft.com/devcontainers/universal:${templateOption:imageVariant}\n' >"$tmp/tags2/universal/.devcontainer/Dockerfile"
+    echo '{"id": "universal", "options": {"imageVariant": {"proposals": ["2"], "default": "2"}}}' >"$tmp/tags2/universal/devcontainer-template.json"
+    expectFail "check-tags: a real tag with amd64 only" "MISSING: devcontainers/universal:2 [amd64]" test/test-utils/check-tags.sh "$tmp/tags2"
+
+    jq '.python |= map(select(type != "array" and . != "test/python/**"))' "$OUT/filters.json" >"$tmp/filters-mutant.json"
+    expectFail "S15 filter check: python loses its test and shared paths" "S15: a change to test/python/test.sh selects ''" checkFilters "$tmp/filters-mutant.json"
 
     rm -rf "$tmp/repo"
     git clone -q "$ROOT" "$tmp/repo"
     git -C "$tmp/repo" -c user.name=Someone -c user.email=someone@localhost commit -q --allow-empty -m "x" -m "Co-Authored-By: Someone <someone@localhost>"
     expectFail "M9 commit check: trailer and author" "M9: AI trailer or mention" checkCommits "$tmp/repo" "$(git rev-parse "$BASE")"
 
-    # checkExtension (T5): fails with no VS Code server, passes once the extension is there.
-    local image=mcr.microsoft.com/devcontainers/dotnet:2-10.0-noble
-    expectFail "checkExtension without the extension" "FAIL: extension ms-mssql.mssql" \
-        docker run --rm --label azsqldc.control=1 -v "$ROOT/test/test-utils:/t:ro" -e HOME=/tmp/h "$image" \
-        bash -c 'source /t/test-utils.sh; checkExtension ms-mssql.mssql; reportResults'
-    docker run --rm --label azsqldc.control=1 -v "$ROOT/test/test-utils:/t:ro" -e HOME=/tmp/h "$image" \
-        bash -c 'mkdir -p /tmp/h/.vscode-server/extensions/ms-mssql.mssql-1.45.1 && source /t/test-utils.sh && checkExtension ms-mssql.mssql && reportResults'
-    echo "control ok: checkExtension passes with the extension present"
     rm -rf "$tmp"
+}
+
+# checkExtensionIds MANIFEST ID...: every id is on the Marketplace and not deprecated in VS Code's own
+# extension control manifest (the list VS Code uses to mark extensions deprecated).
+checkExtensionIds() {
+    local manifest=$1 id bad=0 found
+    shift
+    jq -e '.deprecated | length > 0' "$manifest" >/dev/null || { echo "BROKEN: no deprecated list in $manifest" >&2; return 2; }
+    for id in "$@"; do
+        if jq -e --arg id "$id" '.deprecated[$id]' "$manifest" >/dev/null; then echo "DEPRECATED: $id" >&2; bad=1; continue; fi
+        found=$(curl -fsS -m 30 -H 'Content-Type: application/json' -H 'Accept: application/json;api-version=7.2-preview.1' \
+            -d "{\"filters\":[{\"criteria\":[{\"filterType\":7,\"value\":\"$id\"}]}],\"flags\":0}" \
+            https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery |
+            jq -r --arg id "$id" '[.results[0].extensions[]? | "\(.publisher.publisherName).\(.extensionName)" | ascii_downcase] | index($id | ascii_downcase) != null')
+        if [ "$found" != true ]; then echo "NOT ON MARKETPLACE: $id" >&2; bad=1; fi
+    done
+    return "$bad"
+}
+
+layerExtensions() {
+    local manifest="$OUT/vscode-extension-control-manifest.json" ids
+    curl -fsS -m 60 https://main.vscode-cdn.net/extensions/marketplace.json -o "$manifest"
+    ids=$(jq -r '.configuration.customizations.vscode.extensions[]' "$OUT"/config-*.json | sort -u)
+    # shellcheck disable=SC2086 # ids is a word list
+    checkExtensionIds "$manifest" $ids || die "extensions: an id is deprecated or missing"
+    echo "extensions: $(echo "$ids" | wc -l | tr -d ' ') ids in the 4 templates are on the Marketplace and none is deprecated"
+    expectFail "extension check: a deprecated id" "DEPRECATED: eg2.vscode-npm-script" checkExtensionIds "$manifest" ms-mssql.mssql eg2.vscode-npm-script
+    expectFail "extension check: an id not on the Marketplace" "NOT ON MARKETPLACE: ms-mssql.no-such-extension" checkExtensionIds "$manifest" ms-mssql.no-such-extension
+}
+
+# Removes the images this run pulled that the templates don't use (for example the engine mutant's
+# SQL Server 2022). Images present before the run and the templates' own images stay.
+layerCleanup() {
+    local keep image from removed=""
+    keep=$( (echo mcr.microsoft.com/mssql/server:2025-latest
+        for t in $TEMPLATES; do
+            # shellcheck disable=SC2016 # a literal ${templateOption:imageVariant}
+            from=$(sed -n 's#^FROM \(.*\)\${templateOption:imageVariant}$#\1#p' "src/$t/.devcontainer/Dockerfile")
+            jq -r --arg from "$from" '.options.imageVariant.proposals[] | $from + .' "src/$t/devcontainer-template.json"
+        done) | sort -u)
+    for image in $(docker images --format '{{.Repository}}:{{.Tag}}' | sort -u | comm -23 - "$OUT/images-before.txt" | comm -23 - <(echo "$keep")); do
+        case $image in
+            mcr.microsoft.com/*) docker image rm "$image" >/dev/null; removed="$removed $image" ;;
+            *) die "cleanup: unexpected new image $image" ;;
+        esac
+    done
+    echo "cleanup: removed${removed:- nothing}; kept the templates' images: $(echo "$keep" | paste -sd' ' -)"
 }
 
 layerS12() {
@@ -287,10 +371,12 @@ layerLint; passed lint
 layerStatic; passed static
 layerControls; passed controls
 test/test-utils/check-tags.sh; passed tags
+layerExtensions; passed extensions
 layerS12; passed s12
 layerMatrix; passed matrix
 layerMutation; passed mutation
 layerSupplyChain; passed supply-chain
+layerCleanup; passed cleanup
 
 [ "$(git status --porcelain)" = "" ] || die "the run changed the working tree"
 [ "$PASSED" = " $EXPECTED" ] || die "layers passed: '$PASSED', expected: '$EXPECTED'"

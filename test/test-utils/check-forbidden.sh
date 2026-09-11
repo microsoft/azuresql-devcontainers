@@ -21,23 +21,33 @@ nothing() {
 }
 
 tracked() { git ls-files -- "$@"; }
-binaries() { # tracked files under src/ that git considers binary
-    comm -23 <(tracked src | sort) <(git grep -I -l -e '' -- src | sort)
-}
-unsafeScripts() { # tracked shell scripts without set -euo pipefail
+binaries() { # tracked, non-empty files under src/ that git considers binary
     local f
-    tracked '*.sh' | while IFS= read -r f; do grep -q '^set -euo pipefail' "$f" || echo "$f"; done
+    comm -23 <(tracked src | sort) <(git grep -I -l -e '' -- src | sort) | while IFS= read -r f; do
+        if [ -s "$f" ]; then echo "$f"; fi
+    done
 }
-lsOrNone() { local out; out=$("$@"); [ -n "$out" ] && echo "$out"; } # rc 1 when empty, like grep
+unsafeScripts() { # tracked shell scripts whose first command is not set -euo pipefail
+    local f
+    tracked '*.sh' | while IFS= read -r f; do
+        if [ "$(awk '!/^[[:space:]]*(#|$)/ { print; exit }' "$f")" != "set -euo pipefail" ]; then echo "$f"; fi
+    done
+}
+lsOrNone() { local out; out=$("$@") || return 2; [ -n "$out" ] && echo "$out"; } # rc 1 when empty, like grep
 
-nothing "S14/M4 no gated registry reference" git grep -nI -e 'azurecr\.io' -- . ":!$SELF"
-nothing "M4 no registry credentials" git grep -nIE -e '_CONTAINER_REGISTRY_(USER|PASSWORD)' -e 'docker login' -- . ":!$SELF"
-nothing "M5 no build outputs or images under src/" grep -E '/(bin|obj)/|\.(dacpac|dll|pdb|png|jpe?g|gif|svg|webp|ico)$' <(tracked src)
+# Case-insensitive, and any run of whitespace between words: hostnames ignore case, shells ignore spacing.
+nothing "S14/M4 no gated registry reference" git grep -nIi -e 'azurecr\.io' -- . ":!$SELF"
+nothing "M4 no registry credentials" git grep -nIiE -e '(registry|acr)[_-]?(user(name)?|password|passwd|token)' -e 'docker[[:space:]]+login' -- . ":!$SELF"
+nothing "M5 no build outputs or images under src/" grep -iE '/(bin|obj)/|\.(dacpac|dll|pdb|png|jpe?g|gif|svg|webp|ico)$' <(tracked src)
 nothing "M5 no bin/ or obj/ tracked anywhere" grep -E '(^|/)(bin|obj)/' <(tracked)
 nothing "M5 no binary files under src/" lsOrNone binaries
-nothing "M6 no global destructive docker command" git grep -nE -e 'docker +(system|volume|image|container|network|builder) +prune' -e 'docker +rm +-f +\$\(docker +ps' -- test .github ":!$SELF"
-nothing "M8 every script has set -euo pipefail" lsOrNone unsafeScripts
-nothing "S15 no continue-on-error in workflows" git grep -n -e 'continue-on-error' -- .github
+nothing "M6 no global destructive docker command" git grep -nIiE \
+    -e 'docker[[:space:]]+(system|volume|image|container|network|builder|buildx)[[:space:]]+prune' \
+    -e 'docker[[:space:]]+((volume|image|container|network)[[:space:]]+)?(rm|rmi)[[:space:]][^#]*\$\([[:space:]]*docker' \
+    -e 'xargs([[:space:]]+-[[:alnum:]]+)*[[:space:]]+docker[[:space:]]+((volume|image|container|network)[[:space:]]+)?(rm|rmi)' \
+    -- test .github ":!$SELF"
+nothing "M8 every script starts with set -euo pipefail" lsOrNone unsafeScripts
+nothing "S15 no continue-on-error in workflows" git grep -nIi -e 'continue-on-error' -- .github
 
 echo "check-forbidden: $failures violation(s)"
 [ "$failures" -eq 0 ]

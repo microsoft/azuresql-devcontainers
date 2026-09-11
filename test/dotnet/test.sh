@@ -16,6 +16,7 @@ runSample() {
 checkTools "$EXPECTED_TASKS"
 if [ "$TEMPLATE_ID" = dotnet-aspire ]; then
     checkMatches "S7 aspire 13.5.x" '^13\.5\.' aspire --version
+    checkNative "S1/S2 native aspire" "$(command -v aspire)"
     checkMatches "S7 Aspire project templates installed" 'aspire-apphost' dotnet new list aspire
 fi
 if [ "$MODE" = full ]; then
