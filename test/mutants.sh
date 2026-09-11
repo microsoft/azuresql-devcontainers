@@ -27,7 +27,7 @@ sample-query|test/python/test_sql_connection.py|FROM dbo.books|FROM dbo.authors|
 unbounded-wait|src/python/.devcontainer/sql/postCreateCommand.sh|if [ "$attempt" -eq 10 ]; then exit 1; fi|if [ "$attempt" -eq 10 ]; then break; fi|S11 wrong password fails loudly'
 
 total=0 killed=0
-while IFS='|' read -r id file from to check; do
+while IFS='|' read -r id file from to check <&3; do
     total=$((total + 1))
     dir="$OUT/$id"
     mkdir -p "$dir/tree"
@@ -40,7 +40,7 @@ while IFS='|' read -r id file from to check; do
         export RUN_TAG="m$total" WORK_ROOT="$dir/ws"
         smoke="$dir/tree/.github/actions/smoke-test"
         "$smoke/build.sh" "$TEMPLATE" && "$smoke/test.sh" "$TEMPLATE"
-    ) >"$dir/log" 2>&1 || rc=$?
+    ) </dev/null >"$dir/log" 2>&1 || rc=$? # stdin closed: the Dev Container CLI would eat the mutant list
 
     case $file in
         src/$TEMPLATE/*) ran=${file#src/"$TEMPLATE"/} ;;
@@ -57,7 +57,9 @@ while IFS='|' read -r id file from to check; do
     else
         echo "SURVIVED $id: exit $rc, no 'FAIL: $check' (log: $dir/log)"
     fi
-done <<<"$MUTANTS"
+done 3<<<"$MUTANTS"
 
-echo "mutation: $killed/$total killed"
+listed=$(grep -c . <<<"$MUTANTS")
+echo "mutation: $killed/$total killed ($listed listed)"
+[ "$total" -eq "$listed" ] || { echo "the runner ran $total of $listed mutants" >&2; exit 2; }
 [ "$killed" -eq "$total" ]
