@@ -194,11 +194,11 @@ layerControls() {
     plant "check-forbidden: script without pipefail" "FORBIDDEN: M8 every script starts with set -euo pipefail" "printf '#!/bin/sh\\necho hi\\n' >test/unsafe.sh"
     # The round 1 verifier's spellings (F8): each must fail too.
     plant "check-forbidden: uppercase registry host" "FORBIDDEN: S14/M4 no gated registry reference" "echo '# SQLDBPREVIEW.AZURE''CR.IO/azure-sql/db-dev' >>src/python/.devcontainer/docker-compose.yml"
-    plant "check-forbidden: REGISTRY_PASSWORD" "FORBIDDEN: M4 no registry credentials" "echo 'REGISTRY_''PASSWORD=x' >>src/python/.devcontainer/.env"
-    plant "check-forbidden: docker login with two spaces" "FORBIDDEN: M4 no registry credentials" "echo 'docker  lo''gin example.io' >>test/python/test.sh"
+    plant "check-forbidden: a registry password variable" "FORBIDDEN: M4 no registry credentials" "echo 'REGISTRY_''PASSWORD=x' >>src/python/.devcontainer/.env"
+    plant "check-forbidden: a registry login with two spaces" "FORBIDDEN: M4 no registry credentials" "echo 'docker  lo''gin example.io' >>test/python/test.sh"
     plant "check-forbidden: volume rm fed by docker volume ls" "FORBIDDEN: M6 no global destructive docker command" "echo 'docker volume r''m \$(docker volume ls -q)' >>test/python/test.sh"
     plant "check-forbidden: rm fed by docker ps" "FORBIDDEN: M6 no global destructive docker command" "echo 'docker r''m -f \$(docker ps -aq)' >>test/python/test.sh"
-    plant "check-forbidden: xargs docker rm" "FORBIDDEN: M6 no global destructive docker command" "echo 'docker ps -aq | xargs docker r''m -f' >>test/python/test.sh"
+    plant "check-forbidden: removal through xargs" "FORBIDDEN: M6 no global destructive docker command" "echo 'docker ps -aq | xargs docker r''m -f' >>test/python/test.sh"
     plant "check-forbidden: pipefail only inside a function" "FORBIDDEN: M8 every script starts with set -euo pipefail" "printf '#!/bin/sh\\nf() {\\nset -euo pipefail\\n}\\necho hi\\n' >test/unsafe.sh"
     plant "check-forbidden: continue-on-error" "FORBIDDEN: S15 no continue-on-error in workflows" "echo '    continue-on-error: true' >>.github/workflows/test-pr.yaml"
 
