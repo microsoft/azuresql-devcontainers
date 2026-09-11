@@ -186,14 +186,14 @@ layerControls() {
         expectFail "$1" "$2" test/test-utils/check-forbidden.sh "$tmp/repo"
     }
     # The planted strings are split ('' joins them in the shell) so this file doesn't trip the gates.
-    plant "check-forbidden: gated registry" "FORBIDDEN: S14/M4 no gated registry reference" "echo '# x.azure''cr.io/y' >>src/python/.devcontainer/docker-compose.yml"
+    plant "check-forbidden: gated registry" "FORBIDDEN: S14/M4 no gated registry reference" "echo '# example-gated.azure''cr.io/sample/image:1' >>src/python/.devcontainer/docker-compose.yml"
     plant "check-forbidden: registry credential" "FORBIDDEN: M4 no registry credentials" "echo 'ACR_CONTAINER_REGISTRY_''PASSWORD=x' >>src/python/.devcontainer/.env"
     plant "check-forbidden: build output" "FORBIDDEN: M5 no bin/ or obj/ tracked anywhere" "mkdir -p src/python/database/Library/bin && echo x >src/python/database/Library/bin/x.txt"
     plant "check-forbidden: binary file" "FORBIDDEN: M5 no binary files under src/" "printf 'a\\000b' >src/python/blob.dat"
     plant "check-forbidden: global prune" "FORBIDDEN: M6 no global destructive docker command" "echo 'docker system'' prune -af' >>test/python/test.sh"
     plant "check-forbidden: script without pipefail" "FORBIDDEN: M8 every script starts with set -euo pipefail" "printf '#!/bin/sh\\necho hi\\n' >test/unsafe.sh"
     # The round 1 verifier's spellings (F8): each must fail too.
-    plant "check-forbidden: uppercase registry host" "FORBIDDEN: S14/M4 no gated registry reference" "echo '# SQLDBPREVIEW.AZURE''CR.IO/azure-sql/db-dev' >>src/python/.devcontainer/docker-compose.yml"
+    plant "check-forbidden: uppercase registry host" "FORBIDDEN: S14/M4 no gated registry reference" "echo '# EXAMPLE-GATED.AZURE''CR.IO/SAMPLE/IMAGE:1' >>src/python/.devcontainer/docker-compose.yml"
     plant "check-forbidden: a registry password variable" "FORBIDDEN: M4 no registry credentials" "echo 'REGISTRY_''PASSWORD=x' >>src/python/.devcontainer/.env"
     plant "check-forbidden: a registry login with two spaces" "FORBIDDEN: M4 no registry credentials" "echo 'docker  lo''gin example.io' >>test/python/test.sh"
     plant "check-forbidden: volume rm fed by docker volume ls" "FORBIDDEN: M6 no global destructive docker command" "echo 'docker volume r''m \$(docker volume ls -q)' >>test/python/test.sh"

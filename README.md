@@ -2,7 +2,7 @@
 
 Dev Container templates for building apps on Azure SQL Database. Each template gives you an app container for your language, a local SQL Server 2025 container, and a sample database defined in a SQL Database project that targets Azure SQL Database.
 
-![Inner loop in a dev container, outer loop in Azure](docs/images/azure-sql-db-dev-containers.png)
+![Inner loop in a dev container, outer loop in Azure](docs/images/azure-sql-database-dev-containers.png)
 
 ## Templates
 
