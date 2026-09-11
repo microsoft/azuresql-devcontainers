@@ -276,8 +276,8 @@ layerSupplyChain() {
         0) die "supply chain: a secret-like string is tracked: $hits" ;;
         *) die "supply chain: the secret scan broke (git grep exit $rc)" ;;
     esac
-    [ "$(git grep -lI 'P@ssw0rd!' | paste -sd' ' -)" = "src/dotnet-aspire/.devcontainer/.env src/dotnet/.devcontainer/.env src/javascript-node/.devcontainer/.env src/python/.devcontainer/.env" ] ||
-        die "supply chain: the dev password appears outside the four .env files: $(git grep -lI 'P@ssw0rd!')"
+    [ "$(git grep -lI 'P@ss''w0rd!' | paste -sd' ' -)" = "src/dotnet-aspire/.devcontainer/.env src/dotnet/.devcontainer/.env src/javascript-node/.devcontainer/.env src/python/.devcontainer/.env" ] ||
+        die "supply chain: the dev password appears outside the four .env files: $(git grep -lI 'P@ss''w0rd!')"
     echo "secrets: no key or token patterns; the dev password is only in the four .env files"
 }
 
