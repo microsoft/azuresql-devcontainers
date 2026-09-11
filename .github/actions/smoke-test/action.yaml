@@ -1,22 +1,29 @@
 name: 'Smoke test'
+description: 'Applies a template to a fresh workspace, brings it up, and runs its smoke test'
 inputs:
   template:
-    description: 'Template to test'
+    description: 'Template id, for example python'
     required: true
+  mode:
+    description: 'full, or nodb for hosts that cannot run the amd64 SQL Server container'
+    required: false
+    default: 'full'
 
 runs:
   using: composite
   steps:
-    - name: Checkout main
-      id: checkout_release
-      uses: actions/checkout@v3
-
     - name: Build template
-      id: build_template
       shell: bash
-      run: ${{ github.action_path }}/build.sh ${{ inputs.template }}
+      env:
+        TEMPLATE: ${{ inputs.template }}
+        MODE: ${{ inputs.mode }}
+        RUN_TAG: ci
+      run: '"$GITHUB_ACTION_PATH/build.sh" "$TEMPLATE"'
 
     - name: Test template
-      id: test_template
       shell: bash
-      run: ${{ github.action_path }}/test.sh  ${{ inputs.template }}
+      env:
+        TEMPLATE: ${{ inputs.template }}
+        MODE: ${{ inputs.mode }}
+        RUN_TAG: ci
+      run: '"$GITHUB_ACTION_PATH/test.sh" "$TEMPLATE"'

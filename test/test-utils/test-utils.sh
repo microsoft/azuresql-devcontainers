@@ -56,6 +56,14 @@ runTask() {
 
 taskLabels() { jq -r '.tasks[].label' "$WORKSPACE/.vscode/tasks.json" | paste -sd'|' -; }
 
+# The SQL Database Projects extension finds the .NET SDK through this setting.
+sdkSettingHasDotnet() {
+    local dir
+    dir=$(sed -n 's/.*"sqlDatabaseProjects.dotnetSDK Location": "\([^"]*\)".*/\1/p' "$WORKSPACE/.devcontainer/devcontainer.json")
+    echo "sqlDatabaseProjects.dotnetSDK Location: $dir"
+    [ -n "$dir" ] && [ -x "$dir/dotnet" ] && [ -n "$(ls "$dir/sdk")" ]
+}
+
 dacpacModel() { unzip -p "$WORKSPACE/database/Library/bin/Debug/Library.dacpac" model.xml | sed -n 2p; }
 
 # S10: the fixture builds under Sql170 (so it is valid T-SQL) and fails under the project's own target.
@@ -88,6 +96,7 @@ checkTools() { # EXPECTED-TASK-LABELS joined by |
     check "S10 fixture builds under Sql170" buildWithFixture Microsoft.Data.Tools.Schema.Sql.Sql170DatabaseSchemaProvider
     check "S10 Azure target rejects fixture with $S10_ERROR" azureTargetRejectsFixture
     checkEquals "F8 task labels" "$1" taskLabels
+    check "F8 SQL Database Projects SDK setting points at the SDK" sdkSettingHasDotnet
 }
 
 wrongPasswordFailsLoudly() {

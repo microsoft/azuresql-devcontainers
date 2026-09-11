@@ -7,6 +7,10 @@
 set -euo pipefail
 source "$(dirname "$0")/common.sh"
 trap teardown EXIT
+if [ -z "$WS" ]; then
+    echo "No workspace recorded at $POINTER; run build.sh first" >&2
+    exit 1
+fi
 
 $DEVCONTAINER exec --workspace-folder "$WS" \
     --remote-env "EXPECTED_ARCH=$EXPECTED_ARCH" \

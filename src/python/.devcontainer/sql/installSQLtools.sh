@@ -1,34 +1,19 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Installs sqlcmd (go-sqlcmd) from its GitHub release, checked against the release's SHA-256.
+# There is no current apt package for Debian 12/13 or Ubuntu 24.04, and the old one is x86-only.
+set -euo pipefail
 
-echo "Installing Go-SQLCmd ..."
-curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
-sudo add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/20.04/prod.list)"
-sudo apt-get update
-sudo apt-get install -y sqlcmd
-echo "Go-SQLCmd installed."
+version=v1.10.0
+arch=$(dpkg --print-architecture)
+case $arch in
+    amd64) sha256=92516d98c63d99b0994de5b61350c91f6915f9b76f139a59039fbcb225c2e987 ;;
+    arm64) sha256=9faaa981f9c374f319ac796dedb4678499b8596c87d5b6c512e9b0e7a3b74f8e ;;
+    *) echo "go-sqlcmd has no Linux build for $arch" >&2; exit 1 ;;
+esac
 
-echo "Installing Sqlpackage ..."
-curl -sSL -o sqlpackage.zip "https://aka.ms/sqlpackage-linux"
-mkdir -p /opt/sqlpackage
-unzip sqlpackage.zip -d /opt/sqlpackage && rm sqlpackage.zip
-chmod a+x /opt/sqlpackage/sqlpackage
-echo "Sqlpackage installed."
-
-echo "Installing dependencies for SQL Server driver for Python..."
-sudo apt-get install -y unixodbc-dev
-echo "Dependencies installed."
-
-echo "Installing ODBC driver for SQL Server..."
-curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-sudo curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list -o /etc/apt/sources.list.d/mssql-release.list
-sudo apt-get update
-sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17
-echo "ODBC driver for SQL Server installed."
-
-echo "Installing Python and pip..."
-sudo apt-get install -y python3 python3-pip
-echo "Python and pip installed."
-
-echo "Installing SQL Server driver for Python..."
-sudo pip3 install pyodbc
-echo "SQL Server driver for Python installed."
+tarball=$(mktemp)
+curl -fsSL -o "$tarball" "https://github.com/microsoft/go-sqlcmd/releases/download/$version/sqlcmd-linux-$arch.tar.bz2"
+echo "$sha256  $tarball" | sha256sum --check --strict -
+tar -xjf "$tarball" -C /usr/local/bin sqlcmd
+rm "$tarball"
+sqlcmd --version

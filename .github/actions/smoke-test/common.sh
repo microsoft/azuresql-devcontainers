@@ -39,9 +39,17 @@ case $TEMPLATE_ID in
     *) TEST_DIR=$REPO_ROOT/test/$TEMPLATE_ID ;;
 esac
 
-WS=${WORK_ROOT:-${RUNNER_TEMP:-/tmp}}/azsqldc-${RUN_TAG:-local}-$TEMPLATE_ID-$IMAGE_VARIANT-$ARCH-$MODE
-# The Dev Container CLI names the compose project after the workspace folder; build.sh asserts it.
-PROJECT=$(basename "$WS" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9_-')_devcontainer
+# One workspace per build, never reused: a path deleted and recreated at once can hit a stale file
+# sharing cache on macOS Docker engines. build.sh records it in $POINTER; test.sh reads it.
+BASE=${WORK_ROOT:-${RUNNER_TEMP:-/tmp}}/azsqldc-${RUN_TAG:-local}-$TEMPLATE_ID-$IMAGE_VARIANT-$ARCH-$MODE
+POINTER=$BASE.workspace
+useWorkspace() {
+    WS=$1
+    # The Dev Container CLI names the compose project after the workspace folder; build.sh asserts it.
+    PROJECT=$(basename "$WS" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9_-')_devcontainer
+}
+WS="" PROJECT=""
+if [ -f "$POINTER" ]; then useWorkspace "$(cat "$POINTER")"; fi
 DEVCONTAINER=${DEVCONTAINER:-npx -y @devcontainers/cli@0.89.0}
 # Applies to the app image build; the db service pins its own platform.
 export DOCKER_DEFAULT_PLATFORM=$PLATFORM
@@ -50,11 +58,12 @@ export DOCKER_DEFAULT_PLATFORM=$PLATFORM
 # Touches nothing outside compose project $PROJECT; the shared SQL Server image stays.
 teardown() {
     local id images="" image
+    [ -n "$PROJECT" ] || return 0
     for id in $(docker ps -aq --filter "label=com.docker.compose.project=$PROJECT"); do
         images="$images $(docker inspect --format '{{.Image}}' "$id")"
     done
     docker compose -p "$PROJECT" down -v --remove-orphans
-    images="$images $(docker images -q --filter "reference=vsc-$(basename "$WS" | tr '[:upper:]' '[:lower:]')-*") $(docker images -q --filter "reference=$PROJECT*")"
+    images="$images $(docker images -q --no-trunc --filter "reference=vsc-$(basename "$WS" | tr '[:upper:]' '[:lower:]')-*") $(docker images -q --no-trunc --filter "reference=$PROJECT*")"
     # shellcheck disable=SC2086 # images is a word list
     for image in $(printf '%s\n' $images | sort -u); do
         if docker image inspect --format '{{join .RepoTags " "}}' "$image" | grep -q 'mcr.microsoft.com/'; then continue; fi

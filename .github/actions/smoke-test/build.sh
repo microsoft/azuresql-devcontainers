@@ -17,10 +17,12 @@ onExit() {
 }
 trap onExit EXIT
 
-echo "==> $TEMPLATE_ID ($IMAGE_VARIANT, $PLATFORM, $MODE) in $WS, compose project $PROJECT"
 teardown # leftovers from an earlier run of this exact configuration
-rm -rf "$WS"
+if [ -n "$WS" ]; then rm -rf "$WS"; fi
+useWorkspace "$BASE-$(date +%Y%m%d%H%M%S)"
 mkdir -p "$WS"
+echo "$WS" >"$POINTER"
+echo "==> $TEMPLATE_ID ($IMAGE_VARIANT, $PLATFORM, $MODE) in $WS, compose project $PROJECT"
 cp -R "$SRC_DIR/." "$WS/"
 
 # Option substitution, as `devcontainer templates apply` does. That command only takes published

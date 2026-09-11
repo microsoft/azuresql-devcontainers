@@ -1,6 +1,4 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
         {
@@ -29,17 +27,11 @@
             "type": "shell",
             "command": "bash",
             "args": [
-                ".devcontainer/sql/postCreateCommand.sh",
-                "database/Library/bin/Debug"
+                ".devcontainer/sql/postCreateCommand.sh"
             ]
         },
         {
-            "label": "4. Update .NET SDK",
-            "type": "shell",
-            "command": "sudo dotnet workload update"
-        },
-        {
-            "label": "5. Trust .NET HTTPS certificate",
+            "label": "4. Trust .NET HTTPS certificate",
             "type": "shell",
             "command": "dotnet dev-certs https --trust"
         }
