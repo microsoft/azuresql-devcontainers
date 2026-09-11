@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# N5: files the four templates share must stay byte-identical, so the copies can't drift.
+# Shared files: files the four templates share must stay byte-identical, so the copies can't drift.
 # Closed world: every file in any template is either listed below as per-template, or must exist
 # and be identical in all four. Usage: check-shared.sh [src-dir]
 set -euo pipefail

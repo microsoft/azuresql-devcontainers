@@ -52,40 +52,6 @@ checkCommits() { # REPO BASE
     echo "M9: $(git -C "$1" rev-list --count "$2..HEAD") commits after $2, all by $authors, no AI trailer"
 }
 
-# filterSelects FILTERS-JSON PATH: the templates the paths filter selects for a change to PATH
-# (bash patterns: * also matches /, like the filter's ** here).
-filterSelects() {
-    jq -r 'to_entries[] | select(.key != "shared") | .key as $k | .value | flatten[] | "\($k)\t\(.)"' "$1" |
-        while IFS="$(printf '\t')" read -r key pattern; do
-            # shellcheck disable=SC2053 # the pattern is meant to glob
-            if [[ $2 == $pattern ]]; then echo "$key"; fi
-        done | sort -u | paste -sd' ' -
-}
-
-# checkFilters FILTERS-JSON: each template's own files select it, the shared test files select all four,
-# and files outside the tests select nothing.
-checkFilters() {
-    local path want got all="dotnet dotnet-aspire javascript-node python"
-    while IFS='=' read -r path want; do
-        got=$(filterSelects "$1" "$path")
-        if [ "$got" != "$want" ]; then echo "S15: a change to $path selects '$got', want '$want'" >&2; return 1; fi
-    done <<PATHS
-src/dotnet/.devcontainer/devcontainer.json=dotnet
-src/dotnet-aspire/.devcontainer/devcontainer.json=dotnet-aspire
-src/javascript-node/.devcontainer/devcontainer.json=javascript-node
-src/python/.devcontainer/devcontainer.json=python
-test/dotnet/test.sh=dotnet dotnet-aspire
-test/javascript-node/index.js=javascript-node
-test/python/test.sh=python
-test/test-utils/test-utils.sh=$all
-test/fixtures/azure-incompatible/documents.sql=$all
-.github/actions/smoke-test/build.sh=$all
-.github/workflows/test-pr.yaml=$all
-README.md=
-docs/images/x.png=
-PATHS
-}
-
 layerSourceState() {
     if [ -n "$(git status --porcelain)" ]; then git status --short; die "the working tree has uncommitted or untracked files"; fi
     echo "source: $(git rev-parse HEAD) (tree $(git rev-parse 'HEAD^{tree}')) on $(git rev-parse --abbrev-ref HEAD)"
@@ -113,60 +79,9 @@ layerLint() {
 }
 
 layerStatic() {
-    local t ids compose filters path want got
     test/test-utils/check-shared.sh
     test/test-utils/check-forbidden.sh
-
-    ids=$(for t in src/*/devcontainer-template.json; do jq -r .id "$t"; done | sort | paste -sd' ' -)
-    [ "$ids" = "dotnet dotnet-aspire javascript-node python" ] || die "M1: template ids are '$ids'"
-    for t in $TEMPLATES; do [ "$(jq -r .id "src/$t/devcontainer-template.json")" = "$t" ] || die "M1: src/$t has another id"; done
-    echo "M1: ids unchanged: $ids"
-
-    for t in $TEMPLATES; do
-        [ "$(grep -c '<DSP>Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider</DSP>' "src/$t/database/Library/Library.sqlproj")" = 1 ] || die "M2: src/$t DSP"
-    done
-    echo "M2: all 4 SQL projects target SqlAzureV12DatabaseSchemaProvider"
-
-    # Source .sql only: the committed obj/ build outputs that this branch deletes held .sql copies too.
-    git diff --quiet "$BASE" HEAD -- ':(glob)src/*/database/Library/**/*.sql' ':(exclude,glob)src/*/database/Library/obj/**' ':(exclude,glob)src/*/database/Library/bin/**' || die "M3: .sql files under database/Library changed since $BASE"
-    [ "$(git ls-files ':(glob)src/*/database/Library/**/*.sql' | wc -l | tr -d ' ')" = 28 ] || die "M3: expected 28 .sql files"
-    echo "M3: 28 .sql files under src/*/database/Library identical to $BASE"
-
-    for t in $TEMPLATES; do
-        jq -e '.configuration
-            | (.forwardPorts | index(1433))
-            and (.customizations.vscode.extensions | index("ms-mssql.mssql"))
-            and any(.customizations.vscode.settings."mssql.connections"[]; .profileName == "LocalDev" and .server == "localhost,1433")' \
-            "$OUT/config-$t.json" >/dev/null || die "M7: src/$t lost LocalDev, port 1433, or ms-mssql.mssql"
-    done
-    echo "M7: LocalDev profile, port 1433, and ms-mssql.mssql in all 4"
-
-    for t in $TEMPLATES; do
-        compose=$(yaml2json "src/$t/.devcontainer/docker-compose.yml")
-        jq -e '(has("version") | not)
-            and .services.db.image == "mcr.microsoft.com/mssql/server:2025-latest"
-            and .services.db.platform == "linux/amd64"
-            and .services.db.environment.MSSQL_PID == "EnterpriseDeveloper"
-            and (.services.db.healthcheck.test | tostring | contains("/opt/mssql-tools18/bin/sqlcmd"))
-            and .services.db.deploy.resources.limits == {"cpus": "2", "memory": "2048M"}
-            and (.services.db | has("container_name") | not)
-            and .services.app.depends_on.db.condition == "service_healthy"
-            and .services.app.network_mode == "service:db"' <<<"$compose" >/dev/null || die "F3/F7/N1: src/$t docker-compose.yml"
-    done
-    echo "F3/F7/N1: all 4 compose files: SQL Server 2025 Enterprise Developer, amd64, healthcheck, 2 CPU/2048M, app waits for healthy"
-
-    [ "$(git ls-files '.github/**' | xargs grep -hE '^\s*-?\s*uses:' | grep -vcE 'uses: (\./|[^@]+@[0-9a-f]{40}( |$))')" = 0 ] || die "S15: an action is not pinned by SHA"
-    yaml2json .github/workflows/test-pr.yaml >"$OUT/test-pr.json"
-    jq -e '(.true | has("pull_request") and has("schedule") and has("workflow_dispatch"))
-        and (.jobs.test.strategy.matrix.runner == ["ubuntu-latest", "ubuntu-24.04-arm"])' "$OUT/test-pr.json" >/dev/null || die "S15: triggers or runners"
-    # S15: simulate the paths filter on 13 representative paths.
-    filters=$(jq -r '.jobs["detect-changes"].steps[] | select(.id == "filter") | .with.filters' "$OUT/test-pr.json")
-    printf '%s\n' "$filters" >"$OUT/filters.yml"
-    yaml2json "$OUT/filters.yml" >"$OUT/filters.json"
-    checkFilters "$OUT/filters.json" || die "S15: paths filter"
-    jq -e '.permissions["pull-requests"] == "read"' "$OUT/test-pr.json" >/dev/null || die "S15: paths-filter needs pull-requests: read"
-    echo "S15: paths filter: src/<id> and test/<id> select their templates, shared test files select all 4, other files none (13 paths); pull-requests: read; actions SHA-pinned; amd64 + arm64 runners; PR, weekly, and manual triggers"
-
+    test/test-utils/check-static.sh
     git ls-files | grep -E '(^|/)(CLAUDE|AGENTS|SPEC|EVIDENCE)\.md$|(^|/)\.claude/' && die "M9: an AI file is tracked"
     checkCommits "$ROOT" "$BASE"
 }
@@ -196,9 +111,20 @@ layerControls() {
     plant "check-forbidden: uppercase registry host" "FORBIDDEN: S14/M4 no gated registry reference" "echo '# EXAMPLE-GATED.AZURE''CR.IO/SAMPLE/IMAGE:1' >>src/python/.devcontainer/docker-compose.yml"
     plant "check-forbidden: a registry password variable" "FORBIDDEN: M4 no registry credentials" "echo 'REGISTRY_''PASSWORD=x' >>src/python/.devcontainer/.env"
     plant "check-forbidden: a registry login with two spaces" "FORBIDDEN: M4 no registry credentials" "echo 'docker  lo''gin example.io' >>test/python/test.sh"
-    plant "check-forbidden: volume rm fed by docker volume ls" "FORBIDDEN: M6 no global destructive docker command" "echo 'docker volume r''m \$(docker volume ls -q)' >>test/python/test.sh"
-    plant "check-forbidden: rm fed by docker ps" "FORBIDDEN: M6 no global destructive docker command" "echo 'docker r''m -f \$(docker ps -aq)' >>test/python/test.sh"
+    plant "check-forbidden: volume rm fed by docker volume ls" "FORBIDDEN: M6 no global destructive docker command" "echo 'docker volume r''m \$(docker volume l''s -q)' >>test/python/test.sh"
+    plant "check-forbidden: rm fed by docker ps" "FORBIDDEN: M6 no global destructive docker command" "echo 'docker r''m -f \$(docker p''s -aq)' >>test/python/test.sh"
     plant "check-forbidden: removal through xargs" "FORBIDDEN: M6 no global destructive docker command" "echo 'docker ps -aq | xargs docker r''m -f' >>test/python/test.sh"
+    # The round 2 verifier's spellings (B5, B4).
+    plant "check-forbidden: an ACR login command" "FORBIDDEN: M4 no registry credentials" "echo 'az acr lo''gin --name example' >>test/python/test.sh"
+    plant "check-forbidden: an ACR password variable" "FORBIDDEN: M4 no registry credentials" "echo 'ACR''_PWD=x' >>src/python/.devcontainer/.env"
+    plant "check-forbidden: a short registry password variable" "FORBIDDEN: M4 no registry credentials" "echo 'REGISTRY''_PASS=x' >>src/python/.devcontainer/.env"
+    plant "check-forbidden: a login through podman" "FORBIDDEN: M4 no registry credentials" "echo 'podman lo''gin example.invalid -u x -p y' >>test/python/test.sh"
+    plant "check-forbidden: for loop over an unfiltered listing" "FORBIDDEN: M6 no global destructive docker command" "echo 'for id in \$(docker p''s -aq); do docker r''m -f \"\$id\"; done' >>test/python/test.sh"
+    plant "check-forbidden: backtick listing" "FORBIDDEN: M6 no global destructive docker command" "echo 'docker r''m -f \`docker p''s -aq\`' >>test/python/test.sh"
+    plant "check-forbidden: line-continued prune" "FORBIDDEN: M6 no global destructive docker command" "printf 'docker system \\\\\\n  prune -af\\n' >>test/python/test.sh"
+    plant "check-forbidden: set +e after the first line" "FORBIDDEN: M8 no script turns errexit off" "printf 'se''t +e\\n' >>test/python/test.sh"
+    plant "check-forbidden: non-ASCII dll name" "FORBIDDEN: M5 no build outputs or images under src/" "echo x >src/python/caf$(printf '\\303\\251').dll"
+    plant "check-forbidden: Dockerfile swallows the install" "FORBIDDEN: S12 no Dockerfile swallows a failed step" "perl -pi -e 's#RUN bash /tmp/installSQLtools.sh && rm /tmp/installSQLtools.sh#RUN bash /tmp/installSQLtools.sh |''| true; rm -f /tmp/installSQLtools.sh#' src/python/.devcontainer/Dockerfile"
     plant "check-forbidden: pipefail only inside a function" "FORBIDDEN: M8 every script starts with set -euo pipefail" "printf '#!/bin/sh\\nf() {\\nset -euo pipefail\\n}\\necho hi\\n' >test/unsafe.sh"
     plant "check-forbidden: continue-on-error" "FORBIDDEN: S15 no continue-on-error in workflows" "echo '    continue-on-error: true' >>.github/workflows/test-pr.yaml"
 
@@ -216,6 +142,34 @@ layerControls() {
     jq '.python |= map(select(type != "array" and . != "test/python/**"))' "$OUT/filters.json" >"$tmp/filters-mutant.json"
     expectFail "S15 filter check: python loses its test and shared paths" "S15: a change to test/python/test.sh selects ''" checkFilters "$tmp/filters-mutant.json"
 
+    staticControl() { # LABEL NEEDLE SHELL-SNIPPET: mutate a fresh clone, run check-static
+        rm -rf "$tmp/repo"
+        git clone -q "$ROOT" "$tmp/repo"
+        (cd "$tmp/repo" && eval "$3")
+        expectFail "$1" "$2" test/test-utils/check-static.sh "$tmp/repo"
+    }
+    staticControl "check-static: test step failure swallowed" "FAILED: S15 no step swallows a failure" \
+        "perl -pi -e 's#(run: .\"\\\$GITHUB_ACTION_PATH/test.sh\" \"\\\$TEMPLATE\")#\$1 |''| true#' .github/actions/smoke-test/action.yaml"
+    staticControl "check-static: both runners in nodb mode" "FAILED: S15 every matrix entry runs the smoke test" \
+        "perl -pi -e 's#mode: \\\$\\{\\{ matrix.runner.*#mode: nodb#' .github/workflows/test-pr.yaml"
+    staticControl "check-static: test job disabled" "FAILED: S15 only the two known job and step conditions" \
+        "perl -pi -e 's#if: needs.detect-changes.outputs.templates != .\\[\\].#if: false#' .github/workflows/test-pr.yaml"
+    staticControl "check-static: Pick step selects nothing" "FAILED: S15 the Pick step selects" \
+        "perl -pi -e 's#map\\(select\\(\\. != \"shared\"\\)\\)#map(select(. == \"none\"))#' .github/workflows/test-pr.yaml"
+    staticControl "check-static: check-forbidden failure swallowed" "FAILED: S15 no step swallows a failure" \
+        "perl -pi -e 's#run: test/test-utils/check-forbidden.sh#run: test/test-utils/check-forbidden.sh |''| true#' .github/workflows/test-pr.yaml"
+    staticControl "check-static: a template id renamed" "FAILED: M1 template ids" \
+        "perl -pi -e 's#\"id\": \"python\"#\"id\": \"python-sql\"#' src/python/devcontainer-template.json"
+    staticControl "check-static: a seed row changed" "FAILED: M3 the 28 Library .sql files" \
+        "perl -pi -e 's#Foundation and Earth#Foundation and Mars#' src/python/database/Library/postDeployment.sql"
+    staticControl "check-static: port 1433 dropped" "FAILED: M7 python" \
+        "perl -pi -e 's#\\[5000, 1433\\]#[5000]#' src/python/.devcontainer/devcontainer.json"
+
+    # The mirror gate (D2): a wheel whose bytes don't match pypi.org's digest is refused.
+    mkdir -p "$tmp/wheels"
+    echo tampered >"$tmp/wheels/mssql_python-1.14.0-cp314-cp314-manylinux_2_28_aarch64.whl"
+    expectFail "verify_wheels.py: a tampered wheel" "MISMATCH mssql_python-1.14.0-cp314-cp314-manylinux_2_28_aarch64.whl" python3 test/python/verify_wheels.py "$tmp/wheels"
+
     rm -rf "$tmp/repo"
     git clone -q "$ROOT" "$tmp/repo"
     git -C "$tmp/repo" -c user.name=Someone -c user.email=someone@localhost commit -q --allow-empty -m "x" -m "Co-Authored-By: Someone <someone@localhost>"
@@ -231,7 +185,12 @@ checkExtensionIds() {
     shift
     jq -e '.deprecated | length > 0' "$manifest" >/dev/null || { echo "BROKEN: no deprecated list in $manifest" >&2; return 2; }
     for id in "$@"; do
-        if jq -e --arg id "$id" '.deprecated[$id]' "$manifest" >/dev/null; then echo "DEPRECATED: $id" >&2; bad=1; continue; fi
+        # Extension ids are case-insensitive; the manifest's keys use the publisher's casing.
+        if jq -e --arg id "$id" '[.deprecated | keys[] | ascii_downcase] | index($id | ascii_downcase) != null' "$manifest" >/dev/null; then
+            echo "DEPRECATED: $id" >&2
+            bad=1
+            continue
+        fi
         found=$(curl -fsS -m 30 -H 'Content-Type: application/json' -H 'Accept: application/json;api-version=7.2-preview.1' \
             -d "{\"filters\":[{\"criteria\":[{\"filterType\":7,\"value\":\"$id\"}]}],\"flags\":0}" \
             https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery |
@@ -249,6 +208,7 @@ layerExtensions() {
     checkExtensionIds "$manifest" $ids || die "extensions: an id is deprecated or missing"
     echo "extensions: $(echo "$ids" | wc -l | tr -d ' ') ids in the 4 templates are on the Marketplace and none is deprecated"
     expectFail "extension check: a deprecated id" "DEPRECATED: eg2.vscode-npm-script" checkExtensionIds "$manifest" ms-mssql.mssql eg2.vscode-npm-script
+    expectFail "extension check: a deprecated id in another case" "DEPRECATED: github.copilot-workspace" checkExtensionIds "$manifest" github.copilot-workspace
     expectFail "extension check: an id not on the Marketplace" "NOT ON MARKETPLACE: ms-mssql.no-such-extension" checkExtensionIds "$manifest" ms-mssql.no-such-extension
 }
 
@@ -271,23 +231,29 @@ layerCleanup() {
     echo "cleanup: removed${removed:- nothing}; kept the templates' images: $(echo "$keep" | paste -sd' ' -)"
 }
 
-layerS12() {
-    local tmp out rc=0 image=azsqldc-s12:local
-    tmp=$(mktemp -d "$OUT/s12.XXXX")
-    cp -R src/dotnet/.devcontainer/. "$tmp/"
-    perl -pi -e 's/\$\{templateOption:imageVariant\}/10.0-noble/' "$tmp/Dockerfile"
-    docker build --no-cache --label azsqldc.s12=1 -t "$image" "$tmp" >"$OUT/s12-good.log" 2>&1 || die "S12 control: the unmodified Dockerfile doesn't build (see $OUT/s12-good.log)"
-    docker run --rm "$image" sqlcmd --version | grep -q 'v1.10.0' || die "S12 control: sqlcmd v1.10.0 missing from the unmodified build"
+# s12Build TEMPLATE VARIANT: the template's .devcontainer builds, and with a wrong sqlcmd checksum it doesn't.
+s12Build() {
+    local tmp out rc=0 image="azsqldc-s12-$1:local"
+    tmp=$(mktemp -d "$OUT/s12-$1.XXXX")
+    cp -R "src/$1/.devcontainer/." "$tmp/"
+    VARIANT=$2 perl -pi -e 's/\$\{templateOption:imageVariant\}/$ENV{VARIANT}/' "$tmp/Dockerfile"
+    docker build --no-cache --label azsqldc.s12=1 -t "$image" "$tmp" >"$OUT/s12-$1-good.log" 2>&1 || die "S12 control: the unmodified $1 Dockerfile doesn't build (see $OUT/s12-$1-good.log)"
+    docker run --rm "$image" sqlcmd --version | grep -q 'v1.10.0' || die "S12 control: sqlcmd v1.10.0 missing from the unmodified $1 build"
     docker image rm "$image" >/dev/null
-    echo "S12 control: the unmodified Dockerfile builds and has sqlcmd v1.10.0"
     perl -pi -e '$n += s/(sha256=)([0-9a-f])/$1 . ($2 eq "0" ? "1" : "0")/e; END { exit($n == 2 ? 0 : 1) }' "$tmp/sql/installSQLtools.sh"
     out=$(docker build --no-cache --label azsqldc.s12=1 -t "$image" "$tmp" 2>&1) || rc=$?
-    echo "$out" >"$OUT/s12-bad.log"
-    [ "$rc" -ne 0 ] || die "S12: the build passed with a wrong sqlcmd checksum"
-    grep -q 'FAILED' <<<"$out" || die "S12: the build failed, but not at the checksum (see $OUT/s12-bad.log)"
-    if docker image inspect "$image" >/dev/null 2>&1; then die "S12: an image was produced"; fi
-    echo "S12: with a wrong checksum the image build fails (exit $rc): $(grep -m1 -o 'sha256sum: WARNING.*' <<<"$out")"
+    echo "$out" >"$OUT/s12-$1-bad.log"
+    [ "$rc" -ne 0 ] || die "S12: the $1 build passed with a wrong sqlcmd checksum"
+    grep -q 'FAILED' <<<"$out" || die "S12: the $1 build failed, but not at the checksum (see $OUT/s12-$1-bad.log)"
+    if docker image inspect "$image" >/dev/null 2>&1; then die "S12: an image was produced for $1"; fi
+    echo "S12 $1: unmodified builds with sqlcmd v1.10.0; with a wrong checksum the build fails (exit $rc): $(grep -m1 -o 'sha256sum: WARNING.*' <<<"$out")"
     rm -rf "$tmp"
+}
+
+layerS12() {
+    s12Build dotnet 10.0-noble
+    s12Build python 3.14-trixie
+    s12Build javascript-node 24-trixie
 }
 
 # runSmoke NAME TEMPLATE [VAR=VALUE...]: build.sh + test.sh in one environment; appends to matrix.tsv.

@@ -22,6 +22,8 @@ jobs:
         run: test/test-utils/check-shared.sh
       - name: No forbidden content
         run: test/test-utils/check-forbidden.sh
+      - name: Template ids, target platform, schema, LocalDev, compose shape, and CI integrity
+        run: test/test-utils/check-static.sh
       - name: Every imageVariant proposal exists for amd64 and arm64
         run: test/test-utils/check-tags.sh
 

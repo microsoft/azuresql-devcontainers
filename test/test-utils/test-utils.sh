@@ -125,8 +125,9 @@ checkTools() { # EXPECTED-TASK-LABELS joined by |
     checkMatches "S9 dacpac model is case-insensitive" 'CollationCaseSensitive="False"' dacpacModel
     check "S10 fixture builds under Sql170" buildWithFixture Microsoft.Data.Tools.Schema.Sql.Sql170DatabaseSchemaProvider
     check "S10 Azure target rejects fixture with $S10_ERROR" azureTargetRejectsFixture
-    checkEquals "F8 task labels" "$1" taskLabels
-    check "F8 SQL Database Projects SDK setting points at the SDK" sdkSettingHasDotnet
+    checkEquals "S17 task labels" "$1" taskLabels
+    check "S17 task 2 builds the project" runTask "2. Build SQL Database project"
+    check "S17 SQL Database Projects SDK setting points at the SDK" sdkSettingHasDotnet
 }
 
 # S16: with an object the Azure target rejects, postCreateCommand.sh stops at the build and publishes
