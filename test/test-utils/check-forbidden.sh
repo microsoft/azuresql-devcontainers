@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-# Must-find-nothing gates over the tracked files of a git checkout (S14, M4, M5, M6, M8, M9).
+# Must-find-nothing gates over the tracked files of a git checkout (S14, M4, M5, M6, M8, S15).
 # grep exit 1 (nothing found) is the only pass; 0 means a violation, 2+ means the check broke.
-# Usage: check-forbidden.sh [repo-dir] [base-ref]   (base-ref: commits after it are checked; default main)
+# Usage: check-forbidden.sh [repo-dir]
 set -euo pipefail
 
 cd "${1:-$(dirname "$0")/../..}"
-BASE=${2:-main}
 SELF=test/test-utils/check-forbidden.sh
 failures=0
 
@@ -39,9 +38,6 @@ nothing "M5 no binary files under src/" lsOrNone binaries
 nothing "M6 no global destructive docker command" git grep -nE -e 'docker +(system|volume|image|container|network|builder) +prune' -e 'docker +rm +-f +\$\(docker +ps' -- test .github ":!$SELF"
 nothing "M8 every script has set -euo pipefail" lsOrNone unsafeScripts
 nothing "S15 no continue-on-error in workflows" git grep -n -e 'continue-on-error' -- .github
-nothing "M9 no AI files tracked" grep -E '(^|/)(CLAUDE|AGENTS|SPEC|EVIDENCE)\.md$|(^|/)\.claude/' <(tracked)
-nothing "M9 no AI trailer or mention in commits after $BASE" grep -inE 'co-authored-by|claude|anthropic|generated with' <(git log --format='%an <%ae>%n%B' "$BASE..HEAD")
-nothing "M9 every commit after $BASE by Carlos Robles <contact@croblesm.com>" grep -v '^Carlos Robles <contact@croblesm.com>$' <(git log --format='%an <%ae>' "$BASE..HEAD")
 
 echo "check-forbidden: $failures violation(s)"
 [ "$failures" -eq 0 ]

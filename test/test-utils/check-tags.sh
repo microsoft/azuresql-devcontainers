@@ -10,6 +10,7 @@ failures=0 checked=0
 
 for template in "$SRC"/*/devcontainer-template.json; do
     dir=$(dirname "$template")
+    # shellcheck disable=SC2016 # a literal ${templateOption:imageVariant}
     from=$(sed -n 's#^FROM mcr\.microsoft\.com/\(.*\)\${templateOption:imageVariant}$#\1#p' "$dir/.devcontainer/Dockerfile")
     if [ -z "$from" ]; then
         echo "BROKEN: $dir/.devcontainer/Dockerfile has no 'FROM mcr.microsoft.com/<repo>:<prefix>\${templateOption:imageVariant}' line" >&2

@@ -1,31 +1,91 @@
 name: "CI - Test Templates"
 on:
   pull_request:
+  schedule:
+    - cron: '0 6 * * 1' # weekly: base images and packages change under the templates
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Lint scripts
+        run: git ls-files -z '*.sh' | xargs -0 shellcheck -x -P SCRIPTDIR
+      - name: Shared files are identical across templates
+        run: test/test-utils/check-shared.sh
+      - name: No forbidden content
+        run: test/test-utils/check-forbidden.sh
+      - name: Every imageVariant proposal exists for amd64 and arm64
+        run: test/test-utils/check-tags.sh
+
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
-      templates: ${{ steps.filter.outputs.changes }}
+      templates: ${{ steps.pick.outputs.templates }}
     steps:
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
+        if: github.event_name == 'pull_request'
         with:
           filters: |
-            dab-mssql: ./**/dab-mssql/**
+            shared: &shared
+              - '.github/actions/smoke-test/**'
+              - '.github/workflows/test-pr.yaml'
+              - 'test/test-utils/**'
+              - 'test/fixtures/**'
+            dotnet:
+              - *shared
+              - 'src/dotnet/**'
+              - 'test/dotnet/**'
+            dotnet-aspire:
+              - *shared
+              - 'src/dotnet-aspire/**'
+              - 'test/dotnet/**'
+            javascript-node:
+              - *shared
+              - 'src/javascript-node/**'
+              - 'test/javascript-node/**'
+            python:
+              - *shared
+              - 'src/python/**'
+              - 'test/python/**'
+      - name: Pick templates
+        id: pick
+        env:
+          EVENT: ${{ github.event_name }}
+          CHANGES: ${{ steps.filter.outputs.changes }}
+        run: |
+          if [ "$EVENT" = pull_request ]; then
+            templates=$(jq -c 'map(select(. != "shared"))' <<<"$CHANGES")
+          else
+            templates='["dotnet","dotnet-aspire","javascript-node","python"]'
+          fi
+          echo "templates=$templates" >> "$GITHUB_OUTPUT"
 
   test:
-    needs: [detect-changes]
-    runs-on: ubuntu-latest
-    continue-on-error: true
+    needs: detect-changes
+    if: needs.detect-changes.outputs.templates != '[]'
     strategy:
+      fail-fast: false
       matrix:
-        templates: ${{ fromJSON(needs.detect-changes.outputs.templates) }}
+        template: ${{ fromJSON(needs.detect-changes.outputs.templates) }}
+        runner: [ubuntu-latest, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - name: Smoke test for '${{ matrix.templates }}'
-        id: smoke_test
+      # amd64 runs the full stack. arm64 has no emulation for the amd64-only SQL Server image, so it
+      # builds the app container and runs every check that needs no SQL Server.
+      - name: Smoke test '${{ matrix.template }}' on ${{ matrix.runner }}
         uses: ./.github/actions/smoke-test
         with:
-          template: "${{ matrix.templates }}"
+          template: ${{ matrix.template }}
+          mode: ${{ matrix.runner == 'ubuntu-24.04-arm' && 'nodb' || 'full' }}

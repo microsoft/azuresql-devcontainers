@@ -4,7 +4,11 @@
 set -euo pipefail
 
 step="start"
-trap 'rc=$?; if [ "$rc" -ne 0 ]; then echo "postCreateCommand.sh failed during: $step (exit $rc)" >&2; fi' EXIT
+onExit() {
+    local rc=$?
+    if [ "$rc" -ne 0 ]; then echo "postCreateCommand.sh failed during: $step (exit $rc)" >&2; fi
+}
+trap onExit EXIT
 cd "$(dirname "$0")/../.."
 : "${MSSQL_SA_PASSWORD:?is not set; it comes from .devcontainer/.env}"
 export SQLCMDPASSWORD=$MSSQL_SA_PASSWORD
