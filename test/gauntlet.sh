@@ -92,7 +92,8 @@ layerStatic() {
     done
     echo "M2: all 4 SQL projects target SqlAzureV12DatabaseSchemaProvider"
 
-    git diff --quiet "$BASE" HEAD -- ':(glob)src/*/database/Library/**/*.sql' || die "M3: .sql files under database/Library changed since $BASE"
+    # Source .sql only: the committed obj/ build outputs that this branch deletes held .sql copies too.
+    git diff --quiet "$BASE" HEAD -- ':(glob)src/*/database/Library/**/*.sql' ':(exclude,glob)src/*/database/Library/obj/**' ':(exclude,glob)src/*/database/Library/bin/**' || die "M3: .sql files under database/Library changed since $BASE"
     [ "$(git ls-files ':(glob)src/*/database/Library/**/*.sql' | wc -l | tr -d ' ')" = 28 ] || die "M3: expected 28 .sql files"
     echo "M3: 28 .sql files under src/*/database/Library identical to $BASE"
 
