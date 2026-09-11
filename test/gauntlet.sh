@@ -156,11 +156,12 @@ layerControls() {
         (cd "$tmp/repo" && eval "$3" && git add -Af . && git -c user.name=control -c user.email=control@localhost commit -qm control)
         expectFail "$1" "$2" test/test-utils/check-forbidden.sh "$tmp/repo"
     }
-    plant "check-forbidden: gated registry" "FORBIDDEN: S14/M4 no gated registry reference" "echo '# x.azurecr.io/y' >>src/python/.devcontainer/docker-compose.yml"
-    plant "check-forbidden: registry credential" "FORBIDDEN: M4 no registry credentials" "echo 'ACR_CONTAINER_REGISTRY_PASSWORD=x' >>src/python/.devcontainer/.env"
+    # The planted strings are split ('' joins them in the shell) so this file doesn't trip the gates.
+    plant "check-forbidden: gated registry" "FORBIDDEN: S14/M4 no gated registry reference" "echo '# x.azure''cr.io/y' >>src/python/.devcontainer/docker-compose.yml"
+    plant "check-forbidden: registry credential" "FORBIDDEN: M4 no registry credentials" "echo 'ACR_CONTAINER_REGISTRY_''PASSWORD=x' >>src/python/.devcontainer/.env"
     plant "check-forbidden: build output" "FORBIDDEN: M5 no bin/ or obj/ tracked anywhere" "mkdir -p src/python/database/Library/bin && echo x >src/python/database/Library/bin/x.txt"
     plant "check-forbidden: binary file" "FORBIDDEN: M5 no binary files under src/" "printf 'a\\000b' >src/python/blob.dat"
-    plant "check-forbidden: global prune" "FORBIDDEN: M6 no global destructive docker command" "echo 'docker system prune -af' >>test/python/test.sh"
+    plant "check-forbidden: global prune" "FORBIDDEN: M6 no global destructive docker command" "echo 'docker system'' prune -af' >>test/python/test.sh"
     plant "check-forbidden: script without pipefail" "FORBIDDEN: M8 every script has set -euo pipefail" "printf '#!/bin/sh\\necho hi\\n' >test/unsafe.sh"
     plant "check-forbidden: continue-on-error" "FORBIDDEN: S15 no continue-on-error in workflows" "echo '    continue-on-error: true' >>.github/workflows/test-pr.yaml"
 
