@@ -65,8 +65,9 @@ layerLint() {
     # shellcheck disable=SC2086 # file list without spaces
     shellcheck -x -P SCRIPTDIR $files
     echo "shellcheck: $(echo "$files" | wc -l | tr -d ' ') scripts, 0 findings"
-    for f in $(git ls-files '*.json'); do jq empty "$f"; done
-    echo "json: $(git ls-files '*.json' | wc -l | tr -d ' ') files parse"
+    # devcontainer.json is JSONC; the Dev Container CLI reads those below.
+    for f in $(git ls-files '*.json' ':!:*devcontainer.json'); do jq empty "$f"; done
+    echo "json: $(git ls-files '*.json' ':!:*devcontainer.json' | wc -l | tr -d ' ') files parse"
     for f in $(git ls-files '*.yml' '*.yaml'); do yaml2json "$f" >/dev/null; done
     echo "yaml: $(git ls-files '*.yml' '*.yaml' | wc -l | tr -d ' ') files parse"
     for t in $TEMPLATES; do
