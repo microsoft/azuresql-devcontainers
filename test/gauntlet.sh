@@ -196,7 +196,7 @@ layerS12() {
     docker run --rm "$image" sqlcmd --version | grep -q 'v1.10.0' || die "S12 control: sqlcmd v1.10.0 missing from the unmodified build"
     docker image rm "$image" >/dev/null
     echo "S12 control: the unmodified Dockerfile builds and has sqlcmd v1.10.0"
-    perl -pi -e '$n += s/(sha256=)([0-9a-f])/$1 . ($2 eq "0" ? "1" : "0")/e; END { exit($n == 2 ? 0 : 1) }' "$tmp/installSQLtools.sh"
+    perl -pi -e '$n += s/(sha256=)([0-9a-f])/$1 . ($2 eq "0" ? "1" : "0")/e; END { exit($n == 2 ? 0 : 1) }' "$tmp/sql/installSQLtools.sh"
     out=$(docker build --no-cache --label azsqldc.s12=1 -t "$image" "$tmp" 2>&1) || rc=$?
     echo "$out" >"$OUT/s12-bad.log"
     [ "$rc" -ne 0 ] || die "S12: the build passed with a wrong sqlcmd checksum"
