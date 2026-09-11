@@ -174,7 +174,7 @@ layerControls() {
     rm -rf "$tmp/repo"
     git clone -q "$ROOT" "$tmp/repo"
     git -C "$tmp/repo" -c user.name=Someone -c user.email=someone@localhost commit -q --allow-empty -m "x" -m "Co-Authored-By: Someone <someone@localhost>"
-    expectFail "M9 commit check: trailer and author" "M9: AI trailer or mention" checkCommits "$tmp/repo" "$BASE"
+    expectFail "M9 commit check: trailer and author" "M9: AI trailer or mention" checkCommits "$tmp/repo" "$(git rev-parse "$BASE")"
 
     # checkExtension (T5): fails with no VS Code server, passes once the extension is there.
     local image=mcr.microsoft.com/devcontainers/dotnet:2-10.0-noble
