@@ -19,7 +19,7 @@ Every template includes:
 
 - SQL Server 2025 from `mcr.microsoft.com/mssql/server:2025-latest`, Developer edition.
 - The `Library` sample database. It's built from the SQL Database project and published with SqlPackage when the container is created.
-- The .NET 10 SDK, SqlPackage, `sqlcmd` (go-sqlcmd), Azure CLI with Bicep, and the Azure Developer CLI.
+- The .NET SDK (.NET 10; the `dotnet` template also offers .NET 8), SqlPackage, `sqlcmd` (go-sqlcmd), Azure CLI with Bicep, and the Azure Developer CLI.
 - VS Code tasks to verify the data and to build and publish the SQL Database project.
 
 ## How Azure SQL Database compatibility works

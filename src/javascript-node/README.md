@@ -90,7 +90,7 @@ Podman on macOS is known to crash SQL Server 2025. See [microsoft/mssql-docker#9
 
 ## VS Code extensions
 
-The template installs `ms-mssql.mssql`. Its extension pack adds the SQL Database Projects extension. The template also installs the JavaScript and Node.js extensions and GitHub Copilot. See `.devcontainer/devcontainer.json` for the full list.
+The template installs `ms-mssql.mssql`. Its extension pack adds the SQL Database Projects extension. The template also installs the JavaScript and Node.js extensions, GitHub Copilot, and GitHub Copilot Chat. See `.devcontainer/devcontainer.json` for the full list.
 
 The MSSQL extension has a connection profile named **LocalDev**. It connects to `localhost,1433` as `sa`.
 

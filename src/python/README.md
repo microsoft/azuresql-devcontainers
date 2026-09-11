@@ -90,7 +90,7 @@ Podman on macOS is known to crash SQL Server 2025. See [microsoft/mssql-docker#9
 
 ## VS Code extensions
 
-The template installs `ms-mssql.mssql`. Its extension pack adds the SQL Database Projects extension. The template also installs the Python extensions and GitHub Copilot. See `.devcontainer/devcontainer.json` for the full list.
+The template installs `ms-mssql.mssql`. Its extension pack adds the SQL Database Projects extension. The template also installs the Python extensions, GitHub Copilot, and GitHub Copilot Chat. See `.devcontainer/devcontainer.json` for the full list.
 
 The MSSQL extension has a connection profile named **LocalDev**. It connects to `localhost,1433` as `sa`.
 
@@ -104,7 +104,7 @@ import mssql_python
 
 conn = mssql_python.connect(
     "Server=localhost,1433;Database=Library;UID=sa;"
-    f"PWD={os.environ['MSSQL_SA_PASSWORD']};"
+    f"PWD={{{os.environ['MSSQL_SA_PASSWORD']}}};"
     "Encrypt=yes;TrustServerCertificate=yes;"
 )
 cursor = conn.cursor()
@@ -112,7 +112,7 @@ cursor.execute("SELECT COUNT(*) FROM dbo.books")
 print(cursor.fetchone()[0])
 ```
 
-`TrustServerCertificate=yes` skips TLS certificate validation. Use it only against the local container.
+The braces around the password keep characters such as `;` from breaking the connection string. `TrustServerCertificate=yes` skips TLS certificate validation. Use it only against the local container.
 
 If your project needs `pyodbc`, install the [Microsoft ODBC Driver 18 for SQL Server](https://learn.microsoft.com/sql/connect/odbc/linux-mac/installing-the-microsoft-odbc-driver-for-sql-server) first.
 
