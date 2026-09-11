@@ -1,0 +1,35 @@
+version: 2
+updates:
+  # Dev Container Features in each template's .devcontainer/devcontainer.json.
+  - package-ecosystem: "devcontainers"
+    directories:
+      - "/src/dotnet"
+      - "/src/dotnet-aspire"
+      - "/src/javascript-node"
+      - "/src/python"
+    schedule:
+      interval: "weekly"
+
+  # The db service image in each template's docker-compose.yml
+  # (mcr.microsoft.com/mssql/server:2025-latest). 2025-latest is a moving tag,
+  # so this entry may open no PRs until the image is pinned to a CU tag.
+  - package-ecosystem: "docker-compose"
+    directories:
+      - "/src/dotnet/.devcontainer"
+      - "/src/dotnet-aspire/.devcontainer"
+      - "/src/javascript-node/.devcontainer"
+      - "/src/python/.devcontainer"
+    schedule:
+      interval: "weekly"
+
+  # No "docker" entry for the template Dockerfiles. Their FROM line is
+  # mcr.microsoft.com/devcontainers/<image>:<major>-${templateOption:imageVariant},
+  # which is filled in only when a user applies the template. Dependabot
+  # cannot resolve that placeholder, so the entry would never find an update.
+  # Base image majors are pinned in the Dockerfiles and the imageVariant
+  # proposals in each devcontainer-template.json; review them by hand.
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
