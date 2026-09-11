@@ -130,8 +130,8 @@ layerStatic() {
         path="src/$t/.devcontainer/devcontainer.json"
         got=$(jq -r 'to_entries[] | select(.key != "shared") | .key as $k | .value | flatten[] | "\($k)\t\(.)"' "$OUT/filters.json" |
             while IFS="$(printf '\t')" read -r key pattern; do
-                # shellcheck disable=SC2254 # the pattern is meant to glob
-                case $path in $pattern) echo "$key" ;; esac
+                # shellcheck disable=SC2053 # the pattern is meant to glob
+                if [[ $path == $pattern ]]; then echo "$key"; fi
             done | sort -u | paste -sd' ' -)
         [ "$got" = "$t" ] || die "S15: a change to $path selects '$got', want '$t'"
     done
