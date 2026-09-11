@@ -1,0 +1,5 @@
+bin/
+obj/
+node_modules/
+__pycache__/
+*.dacpac
