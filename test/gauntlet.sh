@@ -269,9 +269,13 @@ layerSupplyChain() {
     fi
     echo "OSV: 0 known vulnerabilities in 7 pinned direct dependencies"
     # Secrets: nothing but the documented local-dev password, no keys or tokens.
-    if git grep -nIE -e '-----BEGIN [A-Z ]*PRIVATE KEY' -e 'AKIA[0-9A-Z]{16}' -e 'gh[pousr]_[A-Za-z0-9]{36}' -e 'AccountKey=' -e 'xox[baprs]-'; then
-        die "supply chain: a secret-like string is tracked"
-    fi
+    local rc=0 hits
+    hits=$(git grep -nIE -e '-----BEGIN [A-Z ]*PRIVATE KEY' -e 'AKIA[0-9A-Z]{16}' -e 'gh[pousr]_[A-Za-z0-9]{36}' -e 'AccountKey=' -e 'xox[baprs]-' -- . ':!test/gauntlet.sh') || rc=$?
+    case $rc in
+        1) ;;
+        0) die "supply chain: a secret-like string is tracked: $hits" ;;
+        *) die "supply chain: the secret scan broke (git grep exit $rc)" ;;
+    esac
     [ "$(git grep -lI 'P@ssw0rd!' | paste -sd' ' -)" = "src/dotnet-aspire/.devcontainer/.env src/dotnet/.devcontainer/.env src/javascript-node/.devcontainer/.env src/python/.devcontainer/.env" ] ||
         die "supply chain: the dev password appears outside the four .env files: $(git grep -lI 'P@ssw0rd!')"
     echo "secrets: no key or token patterns; the dev password is only in the four .env files"
