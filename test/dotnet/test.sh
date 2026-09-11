@@ -1,27 +1,25 @@
-#!/bin/bash
-cd $(dirname "$0")
+#!/usr/bin/env bash
+# Smoke test for the dotnet and dotnet-aspire templates. Runs inside the dev container.
+# Usage: test.sh <template-id> [full|nodb]
+set -euo pipefail
+# shellcheck source=../test-utils/test-utils.sh
+source "$(dirname "$0")/test-utils.sh"
+TEMPLATE_ID=$1
+MODE=${2:-full}
+EXPECTED_TASKS="1. Verify database schema and data|2. Build SQL Database project|3. Publish SQL Database project|4. Trust .NET HTTPS certificate"
 
-source test-utils.sh vscode
+runSample() {
+    dotnet build "$SMOKE_DIR/SmokeTest.csproj" -o "$SMOKE_DIR/out" >&2
+    dotnet "$SMOKE_DIR/out/SmokeTest.dll"
+}
 
-# Remote - Containers does not auto-sync UID/GID for Docker Compose,
-# so make sure test project prvs match the non-root user in the container.
-fixTestProjectFolderPrivs
-
-# Run common tests
-checkCommon
-
-# template specific tests
-checkExtension "ms-dotnettools.csharp"
-checkExtension "ms-mssql.mssql"
-check "dotnet" dotnet --info
-check "nuget" dotnet restore
-check "msbuild" dotnet msbuild
-rm -rf ./obj ./bin
-rm -rf /workspaces/azuresql-devcontainers/azuresql-devcontainers.sln
-check "nvm" bash -c ". /usr/local/share/nvm/nvm.sh && nvm install 10"
-check "nvm-node" bash -c ". /usr/local/share/nvm/nvm.sh && node --version"
-check "yarn" bash -c ". /usr/local/share/nvm/nvm.sh && yarn --version"
-
-# Report result
+checkTools "$EXPECTED_TASKS"
+if [ "$TEMPLATE_ID" = dotnet-aspire ]; then
+    checkMatches "S7 aspire 13.5.x" '^13\.5\.' aspire --version
+    checkMatches "S7 Aspire project templates installed" 'aspire-apphost' dotnet new list aspire
+fi
+if [ "$MODE" = full ]; then
+    checkDatabase
+    checkEquals "S7 SqlClient sample prints 24" 24 runSample
+fi
 reportResults
-

@@ -1,28 +1,20 @@
-#!/bin/bash
-cd $(dirname "$0")
+#!/usr/bin/env bash
+# Smoke test for the javascript-node template. Runs inside the dev container.
+# Usage: test.sh <template-id> [full|nodb]
+set -euo pipefail
+# shellcheck source=../test-utils/test-utils.sh
+source "$(dirname "$0")/test-utils.sh"
+MODE=${2:-full}
+EXPECTED_TASKS="1. Verify database schema and data|2. Build SQL Database project|3. Publish SQL Database project"
 
-source test-utils.sh node
-
-# Remote - Containers does not auto-sync UID/GID for Docker Compose,
-# so make sure test project prvs match the non-root user in the container.
-fixTestProjectFolderPrivs
-
-# Run common tests
-checkCommon
-
-# template specific tests
-checkExtension "dbaeumer.vscode-eslint"
-check "node" node --version
-sudo rm -f yarn.lock
-check "yarn" yarn install
-sudo rm -f package-lock.json
-check "npm" npm install
-check "eslint" eslint index.js
-check "test-project" npm run test
-npm config delete prefix
-check "nvm" bash -c ". /usr/local/share/nvm/nvm.sh && nvm install 8"
-check "nvm-node" bash -c ". /usr/local/share/nvm/nvm.sh && node --version"
-sudo rm -rf node_modules
-
-# Report result
+checkTools "$EXPECTED_TASKS"
+if [ "$MODE" = full ]; then
+    checkDatabase
+    if [ "${SMOKE_NO_NPM_REGISTRY:-}" = 1 ]; then
+        skip "S7 mssql sample prints 24" "SMOKE_NO_NPM_REGISTRY=1: registry.npmjs.org is unreachable from this network"
+    else
+        check "S7 npm install" npm install --prefix "$SMOKE_DIR" --no-audit --no-fund
+        checkEquals "S7 mssql sample prints 24" 24 node "$SMOKE_DIR/index.js"
+    fi
+fi
 reportResults

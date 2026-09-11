@@ -1,17 +1,18 @@
-#!/bin/bash
-cd $(dirname "$0")
+#!/usr/bin/env bash
+# Smoke test for the python template. Runs inside the dev container.
+# Usage: test.sh <template-id> [full|nodb]
+set -euo pipefail
+# shellcheck source=../test-utils/test-utils.sh
+source "$(dirname "$0")/test-utils.sh"
+MODE=${2:-full}
+EXPECTED_TASKS="1. Verify database schema and data|2. Build SQL Database project|3. Publish SQL Database project"
 
-source test-utils.sh vscode
+pipVersion() { python -c 'import importlib.metadata as m; print(m.version("mssql-python"))'; }
 
-# Run common tests
-checkCommon
-
-# template specific tests
-checkExtension "ms-python.python"
-checkExtension "ms-python.vscode-pylance"
-check "python" python --version
-check "pip install" pip install -r requirements.txt
-check "test-project: test_sql_connection.py" python ./test_sql_connection.py
-
-# Report
+checkTools "$EXPECTED_TASKS"
+checkEquals "S7 mssql-python installed" "$(sed -n 's/^mssql-python==//p' "$SMOKE_DIR/requirements.txt")" pipVersion
+if [ "$MODE" = full ]; then
+    checkDatabase
+    checkEquals "S7 mssql-python sample prints 24" 24 python "$SMOKE_DIR/test_sql_connection.py"
+fi
 reportResults

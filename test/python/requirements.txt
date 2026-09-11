@@ -1,1 +1,1 @@
-pyodbc
+mssql-python==1.14.0

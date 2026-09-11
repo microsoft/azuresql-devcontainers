@@ -1,26 +1,14 @@
-#!/usr/bin/env python3
-import pyodbc
+"""Prints the number of books in the Library sample database. Any error raises, so the exit code is non-zero."""
+import os
 
-# python3 -m venv venv
-# source venv/bin/activate
-# pip install -r requirements.txt
+import mssql_python
 
-server = 'localhost'  # Replace with your server name or IP address
-database = 'library'  # Replace with your database name
-username = 'sa'  # Replace with your username
-password = 'P@ssw0rd!'  # Replace with your password
-driver = '{ODBC Driver 17 for SQL Server}'
-
-try:
-    connection_string = f'DRIVER={driver};SERVER={server};PORT=1433;DATABASE={database};UID={username};PWD={password}'
-    conn = pyodbc.connect(connection_string)
-    cursor = conn.cursor()
-    cursor.execute('SELECT @@VERSION')
-    row = cursor.fetchone()
-    print('Connected to SQL Server')
-    print('SQL Server Version:', row[0])
-except Exception as e:
-    print('Error:', e)
-finally:
-    if conn:
-        conn.close()
+conn = mssql_python.connect(
+    "Server=localhost,1433;Database=Library;UID=sa;"
+    f"PWD={{{os.environ['MSSQL_SA_PASSWORD']}}};"
+    "Encrypt=yes;TrustServerCertificate=yes;"
+)
+cursor = conn.cursor()
+cursor.execute("SELECT COUNT(*) FROM dbo.books")
+print(cursor.fetchone()[0])
+conn.close()
