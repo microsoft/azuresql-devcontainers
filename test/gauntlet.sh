@@ -139,8 +139,6 @@ layerControls() {
     echo '{"id": "universal", "options": {"imageVariant": {"proposals": ["2"], "default": "2"}}}' >"$tmp/tags2/universal/devcontainer-template.json"
     expectFail "check-tags: a real tag with amd64 only" "MISSING: devcontainers/universal:2 [amd64]" test/test-utils/check-tags.sh "$tmp/tags2"
 
-    jq '.python |= map(select(type != "array" and . != "test/python/**"))' "$OUT/filters.json" >"$tmp/filters-mutant.json"
-    expectFail "S15 filter check: python loses its test and shared paths" "S15: a change to test/python/test.sh selects ''" checkFilters "$tmp/filters-mutant.json"
 
     staticControl() { # LABEL NEEDLE SHELL-SNIPPET: mutate a fresh clone, run check-static
         rm -rf "$tmp/repo"
@@ -158,6 +156,8 @@ layerControls() {
         "perl -pi -e 's#map\\(select\\(\\. != \"shared\"\\)\\)#map(select(. == \"none\"))#' .github/workflows/test-pr.yaml"
     staticControl "check-static: check-forbidden failure swallowed" "FAILED: S15 no step swallows a failure" \
         "perl -pi -e 's#run: test/test-utils/check-forbidden.sh#run: test/test-utils/check-forbidden.sh |''| true#' .github/workflows/test-pr.yaml"
+    staticControl "check-static: python loses its test and shared filter entries" "FAILED: S15 paths filter" \
+        "perl -0pi -e 's#(            python:\\n)              - \\*shared\\n(              - .src/python/\\*\\*.\\n)              - .test/python/\\*\\*.\\n#\$1\$2#' .github/workflows/test-pr.yaml"
     staticControl "check-static: a template id renamed" "FAILED: M1 template ids" \
         "perl -pi -e 's#\"id\": \"python\"#\"id\": \"python-sql\"#' src/python/devcontainer-template.json"
     staticControl "check-static: a seed row changed" "FAILED: M3 the 28 Library .sql files" \
