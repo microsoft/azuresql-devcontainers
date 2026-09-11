@@ -1,101 +1,69 @@
-# Azure SQL Database Dev Container Templates
+# Azure SQL Database Dev Container templates
 
-<table style="width: 100%; border-style: none;">
-<tr>
-<td style="width: 140px; text-align: center;">
-<a href="https://github.com/devcontainers">
-<img width="128px" src="https://raw.githubusercontent.com/microsoft/fluentui-system-icons/78c9587b995299d5bfc007a0077773556ecb0994/assets/Cube/SVG/ic_fluent_cube_32_filled.svg" alt="devcontainers organization logo"/>
-</a>
-</td>
-<td>
-<strong>Azure SQL Database Dev Container Templates</strong><br />
-Streamlined development environments for Azure SQL Database using Dev Containers.
-</td>
-</tr>
-</table>
+Dev Container templates for building apps on Azure SQL Database. Each template gives you an app container for your language, a local SQL Server 2025 container, and a sample database defined in a SQL Database project that targets Azure SQL Database.
 
+![Inner loop in a dev container, outer loop in Azure](docs/images/azure-sql-db-dev-containers.png)
 
-## Overview
+## Templates
 
-In the quest to enhance local development for Azure SQL Database, this repository provides a comprehensive solution using the power of dev containers. These templates offer developers a seamless and efficient development environment, enabling them to build applications for Azure SQL Database with ease and confidence. Dev containers can be utilized in any development environment, including the cloud, promoting consistency across teams and workflows.
+| Template id | Language | App container base | `imageVariant` options |
+|---|---|---|---|
+| [`dotnet`](src/dotnet) | .NET | Ubuntu 24.04 (noble) | `10.0-noble` (default), `8.0-noble` |
+| [`dotnet-aspire`](src/dotnet-aspire) | .NET with Aspire | Ubuntu 24.04 (noble) | `10.0-noble` |
+| [`python`](src/python) | Python, with the `mssql-python` driver | Debian 13 (trixie) | `3.14-trixie` (default), `3.13-trixie` |
+| [`javascript-node`](src/javascript-node) | Node.js, with the `mssql` package | Debian 13 (trixie) | `24-trixie` (default), `22-trixie` |
 
-![DevContainers-AzureSQL](azure-sql-db-dev-containers.png)
+.NET 8 support ends on 2026-11-10. After that date, use `10.0-noble`.
 
-Our development container templates for Azure SQL Database simplify the development process by providing preconfigured environments that eliminate the need for manual setup. Developers can start coding immediately with all necessary tools and dependencies in place, using popular languages like `.NET` & `NET Aspire`, `Node.js`, `Python`.
+Every template includes:
 
-The local development environment mimics Azure SQL Database, allowing developers to manage data and test applications efficiently. Once ready, **GitHub Actions** automate the deployment process, transitioning seamlessly to **Azure Static Web Apps** and **Azure SQL Database**. This streamlined workflow enhances productivity, reduces setup time, and ensures consistency between local and production environments, helping developers deliver high-quality applications faster.
+- SQL Server 2025 from `mcr.microsoft.com/mssql/server:2025-latest`, Developer edition.
+- The `Library` sample database. It's built from the SQL Database project and published with SqlPackage when the container is created.
+- The .NET 10 SDK, SqlPackage, `sqlcmd` (go-sqlcmd), Azure CLI with Bicep, and the Azure Developer CLI.
+- VS Code tasks to verify the data and to build and publish the SQL Database project.
 
-Thank you for joining us on this journey to enhance the Azure SQL Database development experience. We look forward to your feedback and contributions!
+## How Azure SQL Database compatibility works
 
-## Problem Statement
+The local engine is SQL Server 2025, not Azure SQL Database. The SQL Database project targets Azure SQL Database (`SqlAzureV12DatabaseSchemaProvider`), so its build fails if the schema uses anything Azure SQL Database doesn't support. The build is the compatibility check. The local engine is not.
 
-Developers face significant challenges in setting up efficient local development environments for Azure SQL Database:
+## Use a template
 
-- **Lack of Compatibility**: Discrepancies between local development and production environments.
-- **Setup Complexity**: Time-consuming manual installations and configurations.
-- **Dependency on Cloud Resources**: Increased cloud costs and reliance on internet connectivity.
-- **Limited Integration**: Lack of integration with existing Azure development tools.
+**VS Code.** Install Docker and the [Dev Containers extension](https://code.visualstudio.com/docs/devcontainers/containers). Open your project folder, press <kbd>F1</kbd>, and run **Dev Containers: Add Dev Container Configuration Files...**. Select **Show All Definitions...**, type **Azure SQL**, and pick a template. Then run **Dev Containers: Reopen in Container**.
 
-### Addressing the Gap in Local Development Environments
+**GitHub Codespaces.** In a codespace, run **Codespaces: Add Dev Container Configuration Files...** and follow the same steps. Then run **Codespaces: Rebuild Container**.
 
-We recognize the need for efficient local development environments tailored to Azure SQL Database. Our dev containers bridge this gap, enhancing developer experiences and fostering innovation within the Azure ecosystem. This initiative positions Azure SQL Database as a versatile and developer-centric platform.
+**Dev Container CLI.**
 
-### Accelerating Time-to-Market
+```bash
+devcontainer templates apply -t ghcr.io/microsoft/azuresql-devcontainers/<id>
+devcontainer up --workspace-folder .
+```
 
-Dev containers streamline the development lifecycle, enabling developers to focus on coding and testing without the hassle of environment setup. The increased efficiency leads to faster iterations, higher-quality applications, and a reduced time-to-market for applications built on Azure SQL Database, giving businesses a competitive edge.
+Each template's README covers the tasks, the sample database, and the password setting.
 
-### Cost-Efficiency and Scalability
+## Apple Silicon
 
-Local development with dev containers reduces cloud costs associated with development and testing in Azure environments. This optimization of resources improves cost-efficiency and scalability. Developers can transition seamlessly from local development to Azure environments, using the scalability and reliability of Azure SQL Database for production deployments without incurring unnecessary costs.
+The app container runs natively on arm64. SQL Server 2025 has no arm64 image, so the SQL Server container runs as `linux/amd64` under emulation. Docker Desktop and OrbStack run it with Rosetta.
 
-### Alignment with Cloud-Native Trends
+Microsoft does not test or support SQL Server under emulation. See the [SQL Server 2025 on Linux release notes](https://learn.microsoft.com/sql/linux/sql-server-linux-release-notes-2025?view=sql-server-ver17). Podman on macOS is known to crash SQL Server 2025 ([microsoft/mssql-docker#943](https://github.com/microsoft/mssql-docker/issues/943)). GitHub Codespaces runs on x64 hosts, where SQL Server runs natively.
 
-Dev containers support cloud-native development scenarios, aligning with modern application architectures and frameworks. Ensuring compatibility with Azure SQL Database and facilitates seamless deployment to Azure environments. By embracing cloud-native trends, we position Azure SQL Database as the platform of choice for modern, cloud-native applications, driving long-term adoption and revenue growth.
+## Testing
 
-## Why Dev Containers, Docker, and VS Code?
+Every pull request that changes a template runs that template's smoke test in GitHub Actions. The test applies the template, brings it up, and checks the sample database and the language sample.
 
-Dev Containers, Docker, and VS Code are pivotal tools for modern developers:
+To run the same checks on your machine, use `test/gauntlet.sh`. It needs Docker and the Dev Container CLI.
 
-- **Docker**: Provides portable and reproducible environments.
-- **VS Code**: Popular IDE with robust features and extensibility.
-- **Dev Containers**: Offer a seamless transition from local development to Azure environments, reducing setup complexity and promoting efficiency.
+## Learn more
 
-## Value Proposition
+- [What are SQL database projects?](https://learn.microsoft.com/sql/tools/sql-database-projects/sql-database-projects?view=sql-server-ver17)
+- [Target platform for SQL database projects](https://learn.microsoft.com/sql/tools/sql-database-projects/concepts/target-platform?view=sql-server-ver17)
+- [SQL Server Linux containers](https://learn.microsoft.com/sql/linux/install-upgrade/quickstart-install-docker?view=sql-server-ver17)
+- [Dev Container templates specification](https://containers.dev/implementors/templates/)
 
-Adopting dev containers for Azure SQL Database development offers several advantages:
+## Contributing and feedback
 
-- **Efficient Local Development**: Streamlines the setup process, saving time and reducing errors.
-- **Cost-Efficiency**: Reduces cloud costs by enabling local development.
-- **Faster Time-to-Market**: Accelerates development cycles, leading to quicker application releases.
-- **Alignment with Cloud-Native Trends**: Supports modern application architectures and frameworks.
+Report problems in [GitHub issues](https://github.com/microsoft/azuresql-devcontainers/issues). Contributions to the [templates](src) are welcome.
 
-## Available Templates
+## License
 
-This repository includes Development Container Specifications (templates) for the following frameworks:
-
-- .NET Aspire
-- .NET 8
-- Node.js (JavaScript)
-- Python
-
-Each template comes with a preconfigured Azure SQL Database, making it easy to start developing right away.
-
-## Contributions
-
-### Creating your own collection of templates
-
-The [Development Container Specification](https://containers.dev/implementors/templates-distribution/#distribution) outlines a pattern for community members and organizations to self-author Templates in repositories they control.
-
-### Contributing to this repository
-
-This repository accepts improvement and bug fix contributions related to the
-[current set of maintained templates](./src).
-
-## Feedback
-
-Issues related to these templates can be reported in [an issue](https://github.com/microsoft/azuresql-devcontainers/issues) in this repository.
-
-# License
-
-Copyright (c) Microsoft Corporation. All rights reserved. <br />
-Licensed under the MIT License. See [LICENSE](LICENSE).
+Copyright (c) Microsoft Corporation. Licensed under the MIT License. See [LICENSE](LICENSE).
