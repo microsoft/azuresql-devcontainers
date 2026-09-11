@@ -47,6 +47,8 @@ The app container runs natively on arm64. SQL Server 2025 has no arm64 image, so
 
 Microsoft does not test or support SQL Server under emulation. See the [SQL Server 2025 on Linux release notes](https://learn.microsoft.com/sql/linux/sql-server-linux-release-notes-2025?view=sql-server-ver17). Podman on macOS is known to crash SQL Server 2025 ([microsoft/mssql-docker#943](https://github.com/microsoft/mssql-docker/issues/943)). GitHub Codespaces runs on x64 hosts, where SQL Server runs natively.
 
+Under emulation, SQL Server occasionally crashes while it starts. In our tests on an Apple Silicon Mac it failed 1 start in 37, and the container build then stops because the `db` service never became healthy. Run **Dev Containers: Rebuild Container** again, or restart the `db` container.
+
 ## Testing
 
 Every pull request that changes a template runs that template's smoke test in GitHub Actions. The test applies the template, brings it up, and checks the sample database and the language sample.

@@ -41,6 +41,11 @@
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	"forwardPorts": [5000, 5001, 8000, 1433],
 
+	// Lets task 4 trust the HTTPS development certificate for OpenSSL clients too. See https://aka.ms/dev-certs-trust.
+	"remoteEnv": {
+		"SSL_CERT_DIR": "/home/vscode/.aspnet/dev-certs/trust:/usr/lib/ssl/certs"
+	},
+
 	// SqlPackage and the Aspire CLI, as .NET tools on PATH, and the Aspire project templates.
 	"onCreateCommand": "dotnet tool install --global microsoft.sqlpackage --version 170.5.76 && dotnet tool install --global Aspire.Cli --version 13.5.3 && dotnet new install Aspire.ProjectTemplates::13.5.3",
 

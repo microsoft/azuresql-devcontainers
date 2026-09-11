@@ -41,6 +41,11 @@
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	"forwardPorts": [5000, 5001, 8000, 1433],
 
+	// Lets task 4 trust the HTTPS development certificate for OpenSSL clients too. See https://aka.ms/dev-certs-trust.
+	"remoteEnv": {
+		"SSL_CERT_DIR": "/home/vscode/.aspnet/dev-certs/trust:/usr/lib/ssl/certs"
+	},
+
 	// SqlPackage, as a .NET tool on PATH.
 	"onCreateCommand": "dotnet tool install --global microsoft.sqlpackage --version 170.5.76",
 
