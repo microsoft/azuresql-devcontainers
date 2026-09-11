@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read # dorny/paths-filter lists the changed files through the API on pull_request
 
 jobs:
   static:
