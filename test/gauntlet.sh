@@ -200,6 +200,45 @@ checkExtensionIds() {
     return "$bad"
 }
 
+# The VS Code server a dev container downloads, cached between runs (about 200 MB).
+vscodeServer() {
+    local cache=${GAUNTLET_CACHE:-$HOME/.cache/azsqldc-gauntlet} arch
+    arch=$(docker version --format '{{.Server.Arch}}')
+    case $arch in
+        amd64) arch=x64 ;;
+        arm64) arch=arm64 ;;
+        *) die "no VS Code server build for $arch" ;;
+    esac
+    if [ ! -x "$cache/vscode-server-$arch/bin/code-server" ]; then
+        mkdir -p "$cache/vscode-server-$arch"
+        curl -fsSL -m 600 "https://update.code.visualstudio.com/latest/server-linux-$arch/stable" |
+            tar -xz -C "$cache/vscode-server-$arch" --strip-components=1
+    fi
+    echo "$cache/vscode-server-$arch"
+}
+
+# checkExtensionInstalls ID...: a real VS Code server installs the ids in one go, as a dev container does.
+# An id the server refuses (one that ships built in, for example) fails the batch, and so does a rolled-back
+# install: every id must be on disk afterwards.
+checkExtensionInstalls() {
+    local server args="" id out installed rc=0 bad=0
+    server=$(vscodeServer) || return 2
+    for id in "$@"; do args="$args --install-extension $id"; done
+    out=$(docker run --rm --label azsqldc.extensions=1 -u vscode -v "$server:/vscode-server:ro" -e HOME=/tmp/home \
+        mcr.microsoft.com/devcontainers/dotnet:2-10.0-noble \
+        bash -c "mkdir -p /tmp/home /tmp/ext
+            /vscode-server/bin/code-server$args --force --extensions-dir /tmp/ext 2>&1
+            echo \"SERVER-EXIT=\$?\"
+            echo INSTALLED
+            ls /tmp/ext") || return 2
+    grep -q '^SERVER-EXIT=0$' <<<"$out" || { grep -iE '^Error|Failed Installing' <<<"$out" | sed 's/^/REFUSED: /' >&2; bad=1; }
+    installed=$(sed -n '/^INSTALLED$/,$p' <<<"$out")
+    for id in "$@"; do
+        grep -qi "^$id-" <<<"$installed" || { echo "NOT ON DISK: $id" >&2; bad=1; }
+    done
+    return "$bad"
+}
+
 layerExtensions() {
     local manifest="$OUT/vscode-extension-control-manifest.json" ids
     curl -fsS -m 60 https://main.vscode-cdn.net/extensions/marketplace.json -o "$manifest"
@@ -210,6 +249,12 @@ layerExtensions() {
     expectFail "extension check: a deprecated id" "DEPRECATED: eg2.vscode-npm-script" checkExtensionIds "$manifest" ms-mssql.mssql eg2.vscode-npm-script
     expectFail "extension check: a deprecated id in another case" "DEPRECATED: github.copilot-workspace" checkExtensionIds "$manifest" github.copilot-workspace
     expectFail "extension check: an id not on the Marketplace" "NOT ON MARKETPLACE: ms-mssql.no-such-extension" checkExtensionIds "$manifest" ms-mssql.no-such-extension
+
+    # Installing them for real: the Marketplace answering is not the same as VS Code accepting the id.
+    # shellcheck disable=SC2086 # ids is a word list
+    checkExtensionInstalls $ids || die "extensions: a VS Code server refused an id, or its install was rolled back"
+    echo "extensions: a VS Code server ($(basename "$(vscodeServer)")) installed all $(echo "$ids" | wc -l | tr -d ' ') ids"
+    expectFail "extension install: an id that ships built in" "REFUSED: Error while installing extension github.copilot-chat" checkExtensionInstalls github.copilot-chat
 }
 
 # Removes the images this run pulled that the templates don't use (for example the engine mutant's

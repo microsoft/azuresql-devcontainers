@@ -29,7 +29,8 @@ unbounded-wait|src/python/.devcontainer/sql/postCreateCommand.sh|S11 wrong passw
 sqlcmd-wrong-arch|src/python/.devcontainer/sql/installSQLtools.sh|S1/S2 native sqlcmd|arch=$(dpkg --print-architecture)|arch=amd64
 build-failure-ignored|src/python/.devcontainer/sql/postCreateCommand.sh|S16 a failed build is never published|dotnet build database/Library|dotnet build database/Library || true
 outputs-removed-after-up|src/python/.devcontainer/sql/postCreateCommand.sh|S5 dacpac built during this up|/TargetTrustServerCertificate:True|/TargetTrustServerCertificate:True && rm -rf database/Library/bin database/Library/obj
-task2-wrong-cwd|src/python/.vscode/tasks.json|S17 task 2 builds the project|"cwd": "${workspaceFolder}/database/Library"|"cwd": "${workspaceFolder}"'
+task2-wrong-cwd|src/python/.vscode/tasks.json|S17 task 2 builds the project|"cwd": "${workspaceFolder}/database/Library"|"cwd": "${workspaceFolder}"
+profile-placeholder|src/python/.devcontainer/devcontainer.json|S18 the LocalDev profile authenticates|"password": "P@ssw0rd!"|"password": "${env:MSSQL_SA_PASSWORD}"'
 
 total=0 killed=0
 while IFS='|' read -r id file check from to <&3; do

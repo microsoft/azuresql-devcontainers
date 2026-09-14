@@ -152,6 +152,19 @@ wrongPasswordFailsLoudly() {
     [ "$rc" -ne 0 ] && [ "$rc" -ne 124 ] && grep -q "failed during: wait for SQL Server" <<<"$out"
 }
 
+# S18: the LocalDev connection profile must carry credentials that work. VS Code writes these settings
+# into the container's Machine settings.json verbatim, so a ${env:...} placeholder arrives as an empty
+# password and the profile cannot connect.
+profileAuthenticates() {
+    local field
+    for field in "${PROFILE_SERVER:-}" "${PROFILE_USER:-}" "${PROFILE_PASSWORD:-}"; do
+        if [ -z "$field" ]; then echo "the LocalDev profile has an empty server, user, or password" >&2; return 1; fi
+        # shellcheck disable=SC2016 # a literal ${ placeholder
+        case $field in *'${'*) echo "the LocalDev profile still contains a placeholder: $field" >&2; return 1 ;; esac
+    done
+    SQLCMDPASSWORD=$PROFILE_PASSWORD sqlcmd -S "$PROFILE_SERVER" -U "$PROFILE_USER" -C -b -l 5 -Q "SELECT 1" >/dev/null
+}
+
 # Checks against the running SQL Server.
 checkDatabase() {
     checkEquals "S4 engine major version 17" 17 sql "SELECT SERVERPROPERTY('ProductMajorVersion')"
@@ -161,6 +174,7 @@ checkDatabase() {
     checkEquals "S5 view and procedure exist" 2 sql "SELECT COUNT(*) FROM Library.sys.objects WHERE object_id IN (OBJECT_ID('Library.dbo.vw_books_details'), OBJECT_ID('Library.dbo.stp_get_all_cowritten_books_by_author'))"
     check "S8 task 3 re-publishes" runTask "3. Publish SQL Database project"
     checkLibraryCounts S8
+    check "S18 the LocalDev profile authenticates" profileAuthenticates
     check "S16 a failed build is never published" failedBuildNeverPublishes
     check "S11 wrong password fails loudly" wrongPasswordFailsLoudly
 }
