@@ -73,9 +73,11 @@ Podman on macOS is known to crash SQL Server 2025. See [microsoft/mssql-docker#9
 
 ## VS Code extensions
 
-The template installs `ms-mssql.mssql`. Its extension pack adds the SQL Database Projects extension. The template also installs the C# and .NET extensions, GitHub Copilot, and GitHub Copilot Chat. See `.devcontainer/devcontainer.json` for the full list.
+The template installs `ms-mssql.mssql`. Its extension pack adds the SQL Database Projects extension. The template also installs the C# and .NET extensions. See `.devcontainer/devcontainer.json` for the full list.
 
 The MSSQL extension has a connection profile named **LocalDev**. It connects to `localhost,1433` as `sa`.
+
+GitHub Copilot is not in the list. Current VS Code ships GitHub Copilot Chat built in, and asking for `github.copilot` or `github.copilot-chat` makes the extension install fail, because a built-in extension cannot be replaced from the Marketplace. On older VS Code, install GitHub Copilot yourself.
 
 ## Aspire
 
@@ -124,6 +126,8 @@ Opens `scripts/verifyDatabase.sql`, which queries the sample tables. Run the scr
 
 Runs `dotnet build` in `database/Library`. The output is `database/Library/bin/Debug/Library.dacpac`. If the build fails, check the errors for objects that Azure SQL Database doesn't support.
 
+If this task fails once right after the container is created with `The process cannot access the file '/workspace/database/Library/bin/Debug/Library.dacpac' because it is being used by another process`, the post-create publish was still finishing. Run the task again.
+
 ![SQL Database project build output](https://raw.githubusercontent.com/microsoft/azuresql-devcontainers/main/docs/images/vscode-azure-sql-devcontainers-task-project-build.png)
 
 ### 3. Publish SQL Database project
@@ -151,9 +155,9 @@ To change the schema, edit the `.sql` files in `database/Library`, then run task
 
 ## Change the sa password
 
-`MSSQL_SA_PASSWORD` in `.devcontainer/.env` sets the `sa` password. SQL Server, the post-create script, task 3, and the **LocalDev** connection all read it.
+`MSSQL_SA_PASSWORD` in `.devcontainer/.env` sets the `sa` password. SQL Server, the post-create script, and task 3 read it. The **LocalDev** connection profile in `.devcontainer/devcontainer.json` carries the same password as a literal, because VS Code writes connection settings as they are and does not expand `${env:...}`.
 
-The default is a development-only password, and it's public in this repository. Change it for anything beyond local development. SQL Server requires at least eight characters from three of these four sets: uppercase letters, lowercase letters, digits, and symbols. After you change it, rebuild the container.
+The default is a development-only password, and it's public in this repository. Change it for anything beyond local development: edit `MSSQL_SA_PASSWORD` in `.devcontainer/.env` **and** the `password` of the LocalDev profile in `.devcontainer/devcontainer.json`, then rebuild the container. SQL Server requires at least eight characters from three of these four sets: uppercase letters, lowercase letters, digits, and symbols. After you change it, rebuild the container.
 
 ## Ports
 
@@ -166,6 +170,24 @@ Add the service to `.devcontainer/docker-compose.yml`. To reach it on `localhost
 ```yaml
 network_mode: service:db
 ```
+
+## Troubleshooting: restricted networks
+
+Some corporate networks block the public package registries. The symptom is a container that builds and then fails while it is created, in `onCreateCommand` or `postCreateCommand`, with a connection reset from one of these hosts:
+
+| Host | Used by |
+|---|---|
+| `api.nuget.org` | SqlPackage, the SQL Database project build, the Aspire CLI |
+| `files.pythonhosted.org` | `pip install mssql-python` (python template) |
+| `registry.npmjs.org` | `npm install` in your own project (javascript-node template) |
+
+Point the tools at the feeds your organization allows before you rebuild:
+
+- NuGet: add a `NuGet.Config` in the workspace root with your feed.
+- pip: set `PIP_INDEX_URL` in `remoteEnv` in `.devcontainer/devcontainer.json`, or add a `pip.conf`.
+- npm: `npm config set registry <your registry>`.
+
+If a window is closed or a rebuild is interrupted while the container is still being created, VS Code stops the containers, and later commands report `Error: No such container`. Run **Dev Containers: Rebuild Container**; the templates rebuild from scratch and publish the database again.
 
 ## Learn more
 

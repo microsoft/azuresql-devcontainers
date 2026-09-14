@@ -16,7 +16,7 @@
 						"database": "master",
 						"authenticationType": "SqlLogin",
 						"user": "sa",
-						"password": "${env:MSSQL_SA_PASSWORD}",
+						"password": "P@ssw0rd!",
 						"savePassword": true,
 						"profileName": "LocalDev",
 						"trustServerCertificate": true
@@ -33,8 +33,6 @@
 				"ms-vscode.vscode-node-azure-pack",
 				"ms-azuretools.vscode-docker",
 				"ms-mssql.mssql",
-				"github.copilot",
-				"github.copilot-chat",
 				"github.codespaces"
 			]
 		}

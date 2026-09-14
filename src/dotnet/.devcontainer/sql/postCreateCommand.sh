@@ -23,7 +23,7 @@ done
 
 step="build database/Library"
 echo "==> $step"
-dotnet build database/Library
+dotnet build database/Library -nodeReuse:false
 
 step="publish database/Library/bin/Debug/Library.dacpac to the Library database"
 echo "==> $step"
