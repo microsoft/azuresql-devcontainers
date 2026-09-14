@@ -299,7 +299,9 @@ layerSupplyChain() {
     for arch in amd64 arm64; do
         want=$(sed -n "s/^ *$arch) sha256=\([0-9a-f]*\).*/\1/p" src/dotnet/.devcontainer/sql/installSQLtools.sh)
         got=$(curl -fsSL "https://github.com/microsoft/go-sqlcmd/releases/download/v1.10.0/sqlcmd-linux-$arch.tar.bz2" | shasum -a 256 | cut -d' ' -f1)
-        [ -n "$want" ] && [ "$want" = "$got" ] || die "supply chain: sqlcmd $arch pinned $want, release has $got"
+        if [ -z "$want" ] || [ "$want" != "$got" ]; then
+            die "supply chain: sqlcmd $arch pinned $want, release has $got"
+        fi
         echo "sqlcmd v1.10.0 $arch: pinned SHA-256 matches the release asset ($got)"
     done
     # Known vulnerabilities in the pinned direct dependencies, from the OSV database (covers GitHub advisories).
