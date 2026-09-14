@@ -23,7 +23,17 @@ expect() {
     shift
     if "$@"; then ok "$label"; else bad "$label"; fi
 }
-yaml2json() { ruby -ryaml -rjson -e 'puts JSON.generate(YAML.load_file(ARGV[0]))' "$1"; }
+# The workflow uses YAML anchors. Psych 4 (Ruby 3.1+) refuses aliases unless asked; Psych 3 has no
+# such keyword and raises ArgumentError for it, so try the new signature and fall back to the old.
+yaml2json() {
+    ruby -ryaml -rjson -e '
+        begin
+            doc = YAML.load_file(ARGV[0], aliases: true)
+        rescue ArgumentError
+            doc = YAML.load_file(ARGV[0])
+        end
+        puts JSON.generate(doc)' "$1"
+}
 
 # --- M1, M2, M3 ---------------------------------------------------------------------------------------------
 idsUnchanged() {
