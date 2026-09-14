@@ -162,7 +162,7 @@ layerControls() {
         "perl -pi -e 's#\"id\": \"python\"#\"id\": \"python-sql\"#' src/python/devcontainer-template.json"
     staticControl "check-static: a seed row changed" "FAILED: M3 the 28 Library .sql files" \
         "perl -pi -e 's#Foundation and Earth#Foundation and Mars#' src/python/database/Library/postDeployment.sql"
-    staticControl "check-static: port 1433 dropped" "FAILED: M7 python" \
+    staticControl "check-static: port 1433 dropped" "FAILED: M7/S18 python" \
         "perl -pi -e 's#\\[5000, 1433\\]#[5000]#' src/python/.devcontainer/devcontainer.json"
 
     # The mirror gate (D2): a wheel whose bytes don't match pypi.org's digest is refused.
