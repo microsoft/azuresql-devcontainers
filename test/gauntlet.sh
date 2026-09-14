@@ -217,26 +217,27 @@ vscodeServer() {
     echo "$cache/vscode-server-$arch"
 }
 
-# checkExtensionInstalls ID...: a real VS Code server installs the ids in one go, as a dev container does.
-# An id the server refuses (one that ships built in, for example) fails the batch, and so does a rolled-back
-# install: every id must be on disk afterwards.
+# checkExtensionInstalls ID...: a real VS Code server installs every id, the way a dev container does.
+# One invocation per id (the CLI silently installs only the first of a long batch), each retried once so a
+# transient gallery or node error is not a finding. An id the server refuses (one that ships built in, for
+# example) fails both attempts, and a rolled-back install fails too: every id must be on disk afterwards.
 checkExtensionInstalls() {
-    local server args="" id out installed rc=0 bad=0
+    local server out rc=0
     server=$(vscodeServer) || return 2
-    for id in "$@"; do args="$args --install-extension $id"; done
     out=$(docker run --rm --label azsqldc.extensions=1 -u vscode -v "$server:/vscode-server:ro" -e HOME=/tmp/home \
         mcr.microsoft.com/devcontainers/dotnet:2-10.0-noble \
-        bash -c "mkdir -p /tmp/home /tmp/ext
-            /vscode-server/bin/code-server$args --force --extensions-dir /tmp/ext 2>&1
-            echo \"SERVER-EXIT=\$?\"
-            echo INSTALLED
-            ls /tmp/ext") || return 2
-    grep -q '^SERVER-EXIT=0$' <<<"$out" || { grep -iE '^Error|Failed Installing' <<<"$out" | sed 's/^/REFUSED: /' >&2; bad=1; }
-    installed=$(sed -n '/^INSTALLED$/,$p' <<<"$out")
-    for id in "$@"; do
-        grep -qi "^$id-" <<<"$installed" || { echo "NOT ON DISK: $id" >&2; bad=1; }
-    done
-    return "$bad"
+        bash -c 'set -u; mkdir -p /tmp/home /tmp/ext; status=0
+            for id in '"$*"'; do
+                if ! /vscode-server/bin/code-server --install-extension "$id" --force --extensions-dir /tmp/ext >/tmp/install.log 2>&1 &&
+                    ! /vscode-server/bin/code-server --install-extension "$id" --force --extensions-dir /tmp/ext >/tmp/install.log 2>&1; then
+                    echo "REFUSED: $id: $(grep -iE "^Error|Failed Installing" /tmp/install.log | head -n 1)"
+                    status=1
+                fi
+                ls /tmp/ext | grep -qi "^$id-" || { echo "NOT ON DISK: $id"; status=1; }
+            done
+            exit $status') || rc=$?
+    if [ "$rc" -ne 0 ]; then printf '%s\n' "$out" | grep -E '^(REFUSED|NOT ON DISK)' >&2; fi
+    return "$rc"
 }
 
 layerExtensions() {
@@ -254,7 +255,7 @@ layerExtensions() {
     # shellcheck disable=SC2086 # ids is a word list
     checkExtensionInstalls $ids || die "extensions: a VS Code server refused an id, or its install was rolled back"
     echo "extensions: a VS Code server ($(basename "$(vscodeServer)")) installed all $(echo "$ids" | wc -l | tr -d ' ') ids"
-    expectFail "extension install: an id that ships built in" "REFUSED: Error while installing extension github.copilot-chat" checkExtensionInstalls github.copilot-chat
+    expectFail "extension install: an id that ships built in" "REFUSED: github.copilot-chat" checkExtensionInstalls github.copilot-chat
 }
 
 # Removes the images this run pulled that the templates don't use (for example the engine mutant's
