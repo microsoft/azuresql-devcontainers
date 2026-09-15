@@ -58,14 +58,14 @@ expect "M3 the 28 Library .sql files match test/fixtures/library-sql.sha256" sql
 # --- M7 and the compose shape ---------------------------------------------------------------------------------
 localDev() { # TEMPLATE
     $DEVCONTAINER read-configuration --workspace-folder "src/$1" >"$tmp/config-$1.json" 2>"$tmp/config-$1.err" || { cat "$tmp/config-$1.err" >&2; return 1; }
-    local password
-    password=$(sed -n 's/^MSSQL_SA_PASSWORD=//p' "src/$1/.devcontainer/.env")
-    [ -n "$password" ] || return 1
-    # The profile must carry the same literal password as .env: VS Code writes these settings verbatim.
-    jq -e --arg password "$password" '.configuration
+    # The profile carries ${containerEnv:MSSQL_SA_PASSWORD}: the dev container CLI resolves it from the
+    # container's environment at create time, so the password itself lives only in .env. ${env:...} does
+    # NOT resolve (measured: it arrives as an empty string), and a literal password here would duplicate .env.
+    sed -n 's/^MSSQL_SA_PASSWORD=//p' "src/$1/.devcontainer/.env" | grep -q . || return 1
+    jq -e '.configuration
         | (.customizations.vscode.settings."mssql.connections"[]
             | select(.profileName == "LocalDev")
-            | .password == $password and .savePassword == true and (.password | test("\\$\\{") | not))
+            | .password == "${containerEnv:MSSQL_SA_PASSWORD}" and .savePassword == true)
         and (.forwardPorts | index(1433))
         and (.customizations.vscode.extensions | index("ms-mssql.mssql"))
         and any(.customizations.vscode.settings."mssql.connections"[]; .profileName == "LocalDev" and .server == "localhost,1433")' \
@@ -84,7 +84,7 @@ composeShape() { # TEMPLATE
         and .services.app.network_mode == "service:db"' >/dev/null
 }
 for t in $TEMPLATES; do
-    expect "M7/S18 $t: LocalDev profile with the .env password on localhost,1433, port 1433, ms-mssql.mssql" localDev "$t"
+    expect "M7/S18 $t: LocalDev profile resolves the .env password from containerEnv on localhost,1433, port 1433, ms-mssql.mssql" localDev "$t"
     expect "compose $t: SQL Server 2025 Enterprise Developer, amd64, restart, healthcheck, 2 CPU/2048M, app waits for healthy" composeShape "$t"
 done
 
