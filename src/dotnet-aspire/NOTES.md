@@ -155,9 +155,9 @@ To change the schema, edit the `.sql` files in `database/Library`, then run task
 
 ## Change the sa password
 
-`MSSQL_SA_PASSWORD` in `.devcontainer/.env` sets the `sa` password. SQL Server, the post-create script, and task 3 read it. The **LocalDev** connection profile in `.devcontainer/devcontainer.json` carries the same password as a literal, because VS Code writes connection settings as they are and does not expand `${env:...}`.
+`MSSQL_SA_PASSWORD` in `.devcontainer/.env` sets the `sa` password. SQL Server, the post-create script, and task 3 read it. The **LocalDev** connection profile in `.devcontainer/devcontainer.json` picks it up through `${containerEnv:MSSQL_SA_PASSWORD}`, which the dev container tooling resolves from the container's environment when the container is created. (`${env:...}` does not work here: VS Code writes connection settings as they are, so the profile would arrive with an empty password.)
 
-The default is a development-only password, and it's public in this repository. Change it for anything beyond local development: edit `MSSQL_SA_PASSWORD` in `.devcontainer/.env` **and** the `password` of the LocalDev profile in `.devcontainer/devcontainer.json`, then rebuild the container. SQL Server requires at least eight characters from three of these four sets: uppercase letters, lowercase letters, digits, and symbols. After you change it, rebuild the container.
+The default is a development-only password, and it's public in this repository. Change it for anything beyond local development: edit `MSSQL_SA_PASSWORD` in `.devcontainer/.env`, then rebuild the container. That is the only place the password lives; the LocalDev profile follows it. SQL Server requires at least eight characters from three of these four sets: uppercase letters, lowercase letters, digits, and symbols. After you change it, rebuild the container.
 
 ## Ports
 
