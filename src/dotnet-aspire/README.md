@@ -1,7 +1,7 @@
 
 # .NET with Aspire and Azure SQL (dotnet-aspire)
 
-A development environment for .NET Aspire and Azure SQL, enabling streamlined local development and testing.
+A development environment for Aspire and Azure SQL, enabling streamlined local development and testing.
 
 ## Options
 
