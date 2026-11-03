@@ -13,7 +13,7 @@
 				"mssql.connections": [
 					{
 						"server": "localhost,1433",
-						"database": "master",
+						"database": "Library",
 						"authenticationType": "SqlLogin",
 						"user": "sa",
 						"password": "${containerEnv:MSSQL_SA_PASSWORD}",
@@ -42,7 +42,7 @@
 	// SqlPackage, as a .NET tool on PATH, and mssql-python, Microsoft's Python driver for SQL Server.
 	"onCreateCommand": "dotnet tool install --global microsoft.sqlpackage --version 170.5.76 && pip install --user mssql-python==1.14.0",
 
-	// Builds the SQL Database project and publishes it to SQL Server.
+	// Builds the SQL Database project, provisions Library, and publishes to Azure SQL Database.
 	"postCreateCommand": "bash .devcontainer/sql/postCreateCommand.sh",
 
 	// Features to add to the dev container. More info: https://containers.dev/features.

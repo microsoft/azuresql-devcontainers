@@ -10,7 +10,7 @@ A development environment for Node.js and Azure SQL, enabling streamlined local 
 | imageVariant | Node.js version: | string | 24-trixie |
 
 
-This template sets up a Node.js development environment with a local SQL Server 2025 container and a sample database. The database schema lives in a SQL Database project that targets Azure SQL Database.
+This template sets up a Node.js development environment with a local Azure SQL Database developer container and a sample database. The database schema lives in a SQL Database project that targets Azure SQL Database.
 
 Use it in VS Code with the Dev Containers extension, in GitHub Codespaces, or with the Dev Container CLI.
 
@@ -19,17 +19,17 @@ Use it in VS Code with the Dev Containers extension, in GitHub Codespaces, or wi
 Docker Compose runs two containers:
 
 - `app` is the container you work in. It uses `mcr.microsoft.com/devcontainers/javascript-node` on Debian 13 (trixie).
-- `db` runs SQL Server 2025 from `mcr.microsoft.com/mssql/server:2025-latest`, Developer edition (`MSSQL_PID=EnterpriseDeveloper`).
+- `db` runs the Azure SQL Database developer container from `mcr.microsoft.com/mssql/azure-sql-db-server:latest`.
 
-The `app` container shares the network of the `db` container. From inside `app`, SQL Server is at `localhost,1433`.
+The `app` container shares the network of the `db` container. From inside `app`, Azure SQL Database is at `localhost,1433`.
 
-When the container is created, `postCreateCommand` builds the SQL Database project in `database/Library`. Then it publishes the result to SQL Server with SqlPackage. You start with a `Library` database that already has data in it.
+When the container is created, `postCreateCommand` builds the SQL Database project in `database/Library`. Then it provisions `Library` through a `master` connection and publishes the result to `Library` with SqlPackage. Application queries connect directly to `Library`; do not switch databases with `USE`. You start with a `Library` database that already has data in it.
 
 ### How Azure SQL Database compatibility works
 
-The local engine is SQL Server 2025, not Azure SQL Database. The SQL Database project sets its target platform to Azure SQL Database (`SqlAzureV12DatabaseSchemaProvider`). If the schema uses anything Azure SQL Database doesn't support, the project build fails. That build is the compatibility check. The local engine is not.
+The local container runs the Azure SQL Database engine. The SQL Database project also targets Azure SQL Database (`SqlAzureV12DatabaseSchemaProvider`), so unsupported schema features fail the project build. The container is for development, testing, and demos, not production.
 
-The build checks the schema only. Test your app against Azure SQL Database before you ship it. To learn more, see [Target platform](https://learn.microsoft.com/sql/tools/sql-database-projects/concepts/target-platform?view=sql-server-ver17).
+The preview has known restriction-enforcement gaps and defaults that can differ from the cloud. Test your app against Azure SQL Database in Azure before you ship it. See the [container limitations](https://github.com/microsoft/azure-sql-database-container/blob/main/docs/known-limitations.md). To learn more, see [Target platform](https://learn.microsoft.com/sql/tools/sql-database-projects/concepts/target-platform?view=sql-server-ver17).
 
 ## Create the dev container
 
@@ -73,13 +73,7 @@ devcontainer templates apply -t ghcr.io/microsoft/azuresql-devcontainers/javascr
 
 ## Apple Silicon and other Arm64 hosts
 
-The `app` container runs natively on arm64. SQL Server 2025 has no arm64 image, so the `db` container runs as `linux/amd64` under emulation. Docker Desktop and OrbStack run it with Rosetta.
-
-Microsoft does not test or support SQL Server under emulation. See the [SQL Server 2025 on Linux release notes](https://learn.microsoft.com/sql/linux/sql-server-linux-release-notes-2025?view=sql-server-ver17). On a Mac, the SQL Server container works for local development, but outside Microsoft's support. GitHub Codespaces and other x64 hosts run SQL Server natively.
-
-SQL Server occasionally crashes while it starts, dumping core, and the container build then stops because the `db` service never becomes healthy. We saw it 1 start in 37 under emulation on an Apple Silicon Mac, and once on a native x64 GitHub Actions runner, so it is not specific to emulation. Run **Dev Containers: Rebuild Container** again, or restart the `db` container.
-
-Podman on macOS is known to crash SQL Server 2025. See [microsoft/mssql-docker#943](https://github.com/microsoft/mssql-docker/issues/943).
+Both containers support native `linux/amd64` and `linux/arm64`, including Apple Silicon. Compose selects the host architecture; no amd64 override or Rosetta emulation is needed. Use Linux containers and allocate at least 4 GB of memory and 2 CPUs to the runtime; the database service is limited to 2 GB and 2 CPUs. See the [upstream prerequisites](https://github.com/microsoft/azure-sql-database-container/blob/main/docs/prerequisites.md).
 
 ## Tools in the container
 
@@ -94,7 +88,7 @@ Podman on macOS is known to crash SQL Server 2025. See [microsoft/mssql-docker#9
 
 The template installs `ms-mssql.mssql`. Its extension pack adds the SQL Database Projects extension. The template also installs the JavaScript and Node.js extensions. See `.devcontainer/devcontainer.json` for the full list.
 
-The MSSQL extension has a connection profile named **LocalDev**. It connects to `localhost,1433` as `sa`.
+The MSSQL extension has a connection profile named **LocalDev**. It connects to the `Library` database at `localhost,1433` as `sa`. Some graphical features of the MSSQL extension are not yet fully compatible with the preview; if a UI feature fails, query with `sqlcmd -S localhost -d Library -U sa -C` instead (set `SQLCMDPASSWORD` from `MSSQL_SA_PASSWORD`).
 
 GitHub Copilot is not in the list. Current VS Code ships GitHub Copilot Chat built in, and asking for `github.copilot` or `github.copilot-chat` makes the extension install fail, because a built-in extension cannot be replaced from the Marketplace. On older VS Code, install GitHub Copilot yourself.
 
@@ -160,7 +154,7 @@ If this task fails once right after the container is created with `The process c
 
 ### 3. Publish SQL Database project
 
-Publishes the project to the local SQL Server with SqlPackage, using the `sa` password from `.devcontainer/.env`. Run it after you change the schema. SqlPackage compares the project with the database and applies the changes.
+Builds the project, provisions `Library` if needed, and publishes to the local Azure SQL Database with SqlPackage, using the `sa` password from `.devcontainer/.env`. Run it after you change the schema. SqlPackage compares the project with the database and applies the changes.
 
 ![SQL Database project publish output](https://raw.githubusercontent.com/microsoft/azuresql-devcontainers/main/docs/images/vscode-azure-sql-devcontainers-task-project-publish.png)
 
@@ -177,9 +171,9 @@ To change the schema, edit the `.sql` files in `database/Library`, then run task
 
 ## Change the sa password
 
-`MSSQL_SA_PASSWORD` in `.devcontainer/.env` sets the `sa` password. SQL Server, the post-create script, and task 3 read it. The **LocalDev** connection profile in `.devcontainer/devcontainer.json` picks it up through `${containerEnv:MSSQL_SA_PASSWORD}`, which the dev container tooling resolves from the container's environment when the container is created. (`${env:...}` does not work here: VS Code writes connection settings as they are, so the profile would arrive with an empty password.)
+`MSSQL_SA_PASSWORD` in `.devcontainer/.env` sets the `sa` password. Azure SQL Database, the post-create script, and task 3 read it. The **LocalDev** connection profile in `.devcontainer/devcontainer.json` picks it up through `${containerEnv:MSSQL_SA_PASSWORD}`, which the dev container tooling resolves from the container's environment when the container is created. (`${env:...}` does not work here: VS Code writes connection settings as they are, so the profile would arrive with an empty password.)
 
-The default is a development-only password, and it's public in this repository. Change it for anything beyond local development: edit `MSSQL_SA_PASSWORD` in `.devcontainer/.env`, then rebuild the container. That is the only place the password lives; the LocalDev profile follows it. SQL Server requires at least eight characters from three of these four sets: uppercase letters, lowercase letters, digits, and symbols. After you change it, rebuild the container.
+The default is a development-only password, and it's public in this repository. Change it for anything beyond local development: edit `MSSQL_SA_PASSWORD` in `.devcontainer/.env`, then rebuild the container. That is the only place the password lives; the LocalDev profile follows it. Azure SQL Database requires at least eight characters from three of these four sets: uppercase letters, lowercase letters, digits, and symbols. After you change it, rebuild the container.
 
 ## Ports
 
@@ -215,7 +209,7 @@ If a window is closed or a rebuild is interrupted while the container is still b
 
 - [What are SQL database projects?](https://learn.microsoft.com/sql/tools/sql-database-projects/sql-database-projects?view=sql-server-ver17)
 - [SqlPackage Publish](https://learn.microsoft.com/sql/tools/sqlpackage/sqlpackage-publish?view=sql-server-ver17)
-- [SQL Server Linux containers](https://learn.microsoft.com/sql/linux/install-upgrade/quickstart-install-docker?view=sql-server-ver17)
+- [Azure SQL Database container](https://github.com/microsoft/azure-sql-database-container)
 - [Dev Container templates](https://containers.dev/templates)
 - [All Azure SQL Database Dev Container templates](https://github.com/microsoft/azuresql-devcontainers)
 

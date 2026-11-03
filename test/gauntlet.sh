@@ -82,6 +82,7 @@ layerStatic() {
     test/test-utils/check-shared.sh
     test/test-utils/check-forbidden.sh
     test/test-utils/check-static.sh
+    bash test/test-utils/check-startup.sh
     git ls-files | grep -E '(^|/)(CLAUDE|AGENTS|SPEC|EVIDENCE)\.md$|(^|/)\.claude/' && die "M9: an AI file is tracked"
     checkCommits "$ROOT" "$BASE"
 }
@@ -148,8 +149,8 @@ layerControls() {
     }
     staticControl "check-static: test step failure swallowed" "FAILED: S15 no step swallows a failure" \
         "perl -pi -e 's#(run: .\"\\\$GITHUB_ACTION_PATH/test.sh\" \"\\\$TEMPLATE\")#\$1 |''| true#' .github/actions/smoke-test/action.yaml"
-    staticControl "check-static: both runners in nodb mode" "FAILED: S15 every matrix entry runs the smoke test" \
-        "perl -pi -e 's#mode: \\\$\\{\\{ matrix.runner.*#mode: nodb#' .github/workflows/test-pr.yaml"
+    staticControl "check-static: smoke action exposes a mode input" "FAILED: S15 the smoke-test action runs build.sh and test.sh as they are" \
+        "perl -pi -e 's#^inputs:#inputs:\\n  mode:\\n    default: tooling#' .github/actions/smoke-test/action.yaml"
     staticControl "check-static: test job disabled" "FAILED: S15 only the two known job and step conditions" \
         "perl -pi -e 's#if: needs.detect-changes.outputs.templates != .\\[\\].#if: false#' .github/workflows/test-pr.yaml"
     staticControl "check-static: Pick step selects nothing" "FAILED: S15 the Pick step selects" \
@@ -259,10 +260,10 @@ layerExtensions() {
 }
 
 # Removes the images this run pulled that the templates don't use (for example the engine mutant's
-# SQL Server 2022). Images present before the run and the templates' own images stay.
+# SQL Server image). Images present before the run and the templates' own images stay.
 layerCleanup() {
     local keep image from removed=""
-    keep=$( (echo mcr.microsoft.com/mssql/server:2025-latest
+    keep=$( (echo mcr.microsoft.com/mssql/azure-sql-db-server:latest
         for t in $TEMPLATES; do
             # shellcheck disable=SC2016 # a literal ${templateOption:imageVariant}
             from=$(sed -n 's#^FROM \(.*\)\${templateOption:imageVariant}$#\1#p' "src/$t/.devcontainer/Dockerfile")
@@ -323,7 +324,7 @@ layerMatrix() {
     runSmoke S3-dotnet-8.0 dotnet PLATFORM="$arch" IMAGE_VARIANT=8.0-noble || failed=$((failed + 1))
     runSmoke S3-python-3.13 python PLATFORM="$arch" IMAGE_VARIANT=3.13-trixie || failed=$((failed + 1))
     runSmoke S3-javascript-node-22 javascript-node PLATFORM="$arch" IMAGE_VARIANT=22-trixie || failed=$((failed + 1))
-    for t in $TEMPLATES; do runSmoke "CI-arm64-nodb-$t" "$t" PLATFORM="$arch" MODE=nodb || failed=$((failed + 1)); done
+    for t in $TEMPLATES; do runSmoke "S2-$t-arm64" "$t" PLATFORM=linux/arm64 || failed=$((failed + 1)); done
     leftovers
     [ "$failed" -eq 0 ] || die "matrix: $failed run(s) failed (logs in $OUT)"
 }

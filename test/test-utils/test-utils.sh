@@ -56,7 +56,7 @@ checkNative() {
     if [ "$machine" = "$EXPECTED_ARCH" ]; then pass "$1"; else fail "$1" "$2 is $machine, container is $EXPECTED_ARCH"; fi
 }
 
-sql() { sqlcmd -S localhost -U sa -C -b -h -1 -W -Q "SET NOCOUNT ON; $1"; }
+sql() { sqlcmd -S localhost -d Library -U sa -C -b -h -1 -W -Q "SET NOCOUNT ON; $1"; }
 
 # The exact command of a VS Code task, run from its cwd.
 runTask() {
@@ -106,7 +106,7 @@ azureTargetRejectsFixture() {
     [ "$rc" -ne 0 ] && grep -q "$S10_ERROR" <<<"$out"
 }
 
-# Checks that need no SQL Server: run on every platform, including the arm64 CI job.
+# Tooling and SQL project checks.
 checkTools() { # EXPECTED-TASK-LABELS joined by |
     checkEquals "S1/S2 architecture" "$EXPECTED_ARCH" uname -m
     checkMatches "S6 sqlcmd v1.10.0" 'v?1\.10\.0' sqlcmd --version
@@ -149,7 +149,7 @@ wrongPasswordFailsLoudly() {
     local out rc=0 start=$SECONDS
     out=$(MSSQL_SA_PASSWORD='Wrong-Passw0rd' timeout 180 bash "$WORKSPACE/.devcontainer/sql/postCreateCommand.sh" 2>&1) || rc=$?
     echo "exit $rc after $((SECONDS - start)) s; last lines: $(tail -n 2 <<<"$out")"
-    [ "$rc" -ne 0 ] && [ "$rc" -ne 124 ] && grep -q "failed during: wait for SQL Server" <<<"$out"
+    [ "$rc" -ne 0 ] && [ "$rc" -ne 124 ] && grep -q "failed during: wait for Azure SQL Database" <<<"$out"
 }
 
 # S18: the LocalDev connection profile must carry credentials that work. VS Code writes these settings
@@ -157,21 +157,23 @@ wrongPasswordFailsLoudly() {
 # password and the profile cannot connect.
 profileAuthenticates() {
     local field
-    for field in "${PROFILE_SERVER:-}" "${PROFILE_USER:-}" "${PROFILE_PASSWORD:-}"; do
-        if [ -z "$field" ]; then echo "the LocalDev profile has an empty server, user, or password" >&2; return 1; fi
+    for field in "${PROFILE_SERVER:-}" "${PROFILE_DATABASE:-}" "${PROFILE_USER:-}" "${PROFILE_PASSWORD:-}"; do
+        if [ -z "$field" ]; then echo "the LocalDev profile has an empty server, database, user, or password" >&2; return 1; fi
         # shellcheck disable=SC2016 # a literal ${ placeholder
         case $field in *'${'*) echo "the LocalDev profile still contains a placeholder: $field" >&2; return 1 ;; esac
     done
-    SQLCMDPASSWORD=$PROFILE_PASSWORD sqlcmd -S "$PROFILE_SERVER" -U "$PROFILE_USER" -C -b -l 5 -Q "SELECT 1" >/dev/null
+    [ "$PROFILE_DATABASE" = Library ] || { echo "the LocalDev profile must target Library" >&2; return 1; }
+    SQLCMDPASSWORD=$PROFILE_PASSWORD sqlcmd -S "$PROFILE_SERVER" -d "$PROFILE_DATABASE" -U "$PROFILE_USER" -C -b -l 5 -Q "SELECT 1" >/dev/null
 }
 
-# Checks against the running SQL Server.
+# Checks against the running Azure SQL Database engine.
 checkDatabase() {
-    checkEquals "S4 engine major version 17" 17 sql "SELECT SERVERPROPERTY('ProductMajorVersion')"
-    checkEquals "S4 edition" "Enterprise Developer Edition (64-bit)" sql "SELECT SERVERPROPERTY('Edition')"
+    checkEquals "S4 Azure SQL engine edition" 5 sql "SELECT SERVERPROPERTY('EngineEdition')"
+    checkEquals "S4 edition" "SQL Azure" sql "SELECT SERVERPROPERTY('Edition')"
     check "S5 dacpac built during this up" test "$BUILT_BY_UP" = yes
     checkLibraryCounts S5
-    checkEquals "S5 view and procedure exist" 2 sql "SELECT COUNT(*) FROM Library.sys.objects WHERE object_id IN (OBJECT_ID('Library.dbo.vw_books_details'), OBJECT_ID('Library.dbo.stp_get_all_cowritten_books_by_author'))"
+    checkEquals "S5 view and procedure exist" 2 sql "SELECT COUNT(*) FROM sys.objects WHERE object_id IN (OBJECT_ID('dbo.vw_books_details'), OBJECT_ID('dbo.stp_get_all_cowritten_books_by_author'))"
+    check "S5 verification script runs on Library" sqlcmd -S localhost -d Library -U sa -C -b -i "$WORKSPACE/scripts/verifyDatabase.sql"
     check "S8 task 3 re-publishes" runTask "3. Publish SQL Database project"
     checkLibraryCounts S8
     check "S18 the LocalDev profile authenticates" profileAuthenticates
@@ -180,9 +182,9 @@ checkDatabase() {
 }
 
 checkLibraryCounts() {
-    checkEquals "$1 5 authors" 5 sql "SELECT COUNT(*) FROM Library.dbo.authors"
-    checkEquals "$1 24 books" 24 sql "SELECT COUNT(*) FROM Library.dbo.books"
-    checkEquals "$1 24 books_authors" 24 sql "SELECT COUNT(*) FROM Library.dbo.books_authors"
+    checkEquals "$1 5 authors" 5 sql "SELECT COUNT(*) FROM dbo.authors"
+    checkEquals "$1 24 books" 24 sql "SELECT COUNT(*) FROM dbo.books"
+    checkEquals "$1 24 books_authors" 24 sql "SELECT COUNT(*) FROM dbo.books_authors"
 }
 
 reportResults() {

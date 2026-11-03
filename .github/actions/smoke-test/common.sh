@@ -4,8 +4,7 @@
 #
 # Optional environment:
 #   IMAGE_VARIANT  imageVariant to test (default: the template's default)
-#   PLATFORM       linux/amd64 or linux/arm64 for the app container (default: the Docker engine's)
-#   MODE           full (default) or nodb: app container only, for hosts that can't run SQL Server
+#   PLATFORM       linux/amd64 or linux/arm64 (default: the Docker engine's)
 #   RUN_TAG        part of the workspace and compose project name, so parallel CI jobs and local
 #                  runs never share a stack (default: local)
 #   WORK_ROOT      parent directory of the test workspace (default: $RUNNER_TEMP or /tmp)
@@ -23,7 +22,6 @@ fi
 
 IMAGE_VARIANT=${IMAGE_VARIANT:-$(jq -er .options.imageVariant.default "$SRC_DIR/devcontainer-template.json")}
 PLATFORM=${PLATFORM:-linux/$(docker version --format '{{.Server.Arch}}')}
-MODE=${MODE:-full}
 ARCH=${PLATFORM#linux/}
 case $ARCH in
     amd64) EXPECTED_ARCH=x86_64 ;;
@@ -41,7 +39,7 @@ esac
 
 # One workspace per build, never reused: a path deleted and recreated at once can hit a stale file
 # sharing cache on macOS Docker engines. build.sh records it in $POINTER; test.sh reads it.
-BASE=${WORK_ROOT:-${RUNNER_TEMP:-/tmp}}/azsqldc-${RUN_TAG:-local}-$TEMPLATE_ID-$IMAGE_VARIANT-$ARCH-$MODE
+BASE=${WORK_ROOT:-${RUNNER_TEMP:-/tmp}}/azsqldc-${RUN_TAG:-local}-$TEMPLATE_ID-$IMAGE_VARIANT-$ARCH
 POINTER=$BASE.workspace
 useWorkspace() {
     WS=$1
@@ -51,11 +49,11 @@ useWorkspace() {
 WS="" PROJECT=""
 if [ -f "$POINTER" ]; then useWorkspace "$(cat "$POINTER")"; fi
 DEVCONTAINER=${DEVCONTAINER:-npx -y @devcontainers/cli@0.89.0}
-# Applies to the app image build; the db service pins its own platform.
+# Applies to both the app image build and the database image.
 export DOCKER_DEFAULT_PLATFORM=$PLATFORM
 
 # Removes this workspace's containers, volumes, network, and the app images built for it.
-# Touches nothing outside compose project $PROJECT; the shared SQL Server image stays.
+# Touches nothing outside compose project $PROJECT; the shared Azure SQL Database image stays.
 teardown() {
     local id images="" image
     [ -n "$PROJECT" ] || return 0

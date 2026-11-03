@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# S13: every imageVariant proposal is a real MCR tag with linux/amd64 and linux/arm64 images.
+# S13: app imageVariant proposals and database images have linux/amd64 and linux/arm64 images.
 # The image and tag prefix come from each template's Dockerfile FROM line, so the check follows
 # the Dockerfile. Anonymous registry API; needs network. Usage: check-tags.sh [src-dir]
 set -euo pipefail
@@ -7,6 +7,17 @@ set -euo pipefail
 SRC=${1:-$(cd "$(dirname "$0")/../../src" && pwd)}
 ACCEPT='application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json'
 failures=0 checked=0
+
+checkImage() {
+    local image=$1 platforms
+    checked=$((checked + 1))
+    platforms=$(curl -fsS -m 30 -H "Accept: $ACCEPT" "https://mcr.microsoft.com/v2/${image%%:*}/manifests/${image#*:}" |
+        jq -r '[.manifests[].platform | select(.os == "linux") | .architecture] | sort | join(",")') || platforms="(request failed)"
+    case ",$platforms," in
+        *,amd64,*arm64,*) echo "ok: $image [$platforms]" ;;
+        *) echo "MISSING: $image [$platforms]" >&2; failures=$((failures + 1)) ;;
+    esac
+}
 
 for template in "$SRC"/*/devcontainer-template.json; do
     dir=$(dirname "$template")
@@ -23,15 +34,15 @@ for template in "$SRC"/*/devcontainer-template.json; do
         failures=$((failures + 1))
     fi
     for variant in $(jq -r '.options.imageVariant.proposals[]' "$template"); do
-        checked=$((checked + 1))
-        platforms=$(curl -fsS -m 30 -H "Accept: $ACCEPT" "https://mcr.microsoft.com/v2/$repo/manifests/$prefix$variant" |
-            jq -r '[.manifests[].platform | select(.os == "linux") | .architecture] | sort | join(",")') || platforms="(request failed)"
-        case ",$platforms," in
-            *,amd64,*arm64,*) echo "ok: $repo:$prefix$variant [$platforms]" ;;
-            *) echo "MISSING: $repo:$prefix$variant [$platforms]" >&2; failures=$((failures + 1)) ;;
-        esac
+        checkImage "$repo:$prefix$variant"
     done
 done
 
-echo "check-tags: $checked proposal(s), $failures problem(s)"
+images=$(for compose in "$SRC"/*/.devcontainer/docker-compose.yml; do
+    [ -f "$compose" ] || continue
+    sed -n 's/^    image: mcr\.microsoft\.com\///p' "$compose"
+done | sort -u)
+for image in $images; do checkImage "$image"; done
+
+echo "check-tags: $checked image tag(s), $failures problem(s)"
 [ "$checked" -gt 0 ] && [ "$failures" -eq 0 ]

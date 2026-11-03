@@ -13,7 +13,7 @@
 				"mssql.connections": [
 					{
 						"server": "localhost,1433",
-						"database": "master",
+						"database": "Library",
 						"authenticationType": "SqlLogin",
 						"user": "sa",
 						"password": "${containerEnv:MSSQL_SA_PASSWORD}",
@@ -47,7 +47,7 @@
 	// SqlPackage and the Aspire CLI, as .NET tools on PATH, and the Aspire project templates.
 	"onCreateCommand": "dotnet tool install --global microsoft.sqlpackage --version 170.5.76 && dotnet tool install --global Aspire.Cli --version 13.5.3 && dotnet new install Aspire.ProjectTemplates::13.5.3",
 
-	// Builds the SQL Database project and publishes it to SQL Server.
+	// Builds the SQL Database project, provisions Library, and publishes to Azure SQL Database.
 	"postCreateCommand": "bash .devcontainer/sql/postCreateCommand.sh",
 
 	// Features to add to the dev container. More info: https://containers.dev/features.

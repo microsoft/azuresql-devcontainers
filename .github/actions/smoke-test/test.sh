@@ -18,9 +18,10 @@ profile=$($DEVCONTAINER read-configuration --workspace-folder "$WS" |
 
 $DEVCONTAINER exec --workspace-folder "$WS" \
     --remote-env "PROFILE_SERVER=$(jq -r .server <<<"$profile")" \
+    --remote-env "PROFILE_DATABASE=$(jq -r .database <<<"$profile")" \
     --remote-env "PROFILE_USER=$(jq -r .user <<<"$profile")" \
     --remote-env "PROFILE_PASSWORD=$(jq -r .password <<<"$profile")" \
     --remote-env "EXPECTED_ARCH=$EXPECTED_ARCH" \
     --remote-env "EXPECTED_DOTNET_MAJOR=$EXPECTED_DOTNET_MAJOR" \
     --remote-env "SMOKE_NO_NPM_REGISTRY=${SMOKE_NO_NPM_REGISTRY:-}" \
-    bash test-smoke/test.sh "$TEMPLATE_ID" "$MODE"
+    bash test-smoke/test.sh "$TEMPLATE_ID"
