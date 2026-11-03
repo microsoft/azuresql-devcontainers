@@ -4,10 +4,6 @@ inputs:
   template:
     description: 'Template id, for example python'
     required: true
-  mode:
-    description: 'full (both containers), or nodb for optional app-only tooling checks'
-    required: false
-    default: 'full'
 
 runs:
   using: composite
@@ -16,7 +12,6 @@ runs:
       shell: bash
       env:
         TEMPLATE: ${{ inputs.template }}
-        MODE: ${{ inputs.mode }}
         RUN_TAG: ci
       run: '"$GITHUB_ACTION_PATH/build.sh" "$TEMPLATE"'
 
@@ -24,6 +19,5 @@ runs:
       shell: bash
       env:
         TEMPLATE: ${{ inputs.template }}
-        MODE: ${{ inputs.mode }}
         RUN_TAG: ci
       run: '"$GITHUB_ACTION_PATH/test.sh" "$TEMPLATE"'

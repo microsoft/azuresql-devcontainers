@@ -87,9 +87,7 @@ jobs:
         with:
           persist-credentials: false
 
-      # Both architectures run the full stack with the native Azure SQL Database image.
       - name: Smoke test '${{ matrix.template }}' on ${{ matrix.runner }}
         uses: ./.github/actions/smoke-test
         with:
           template: ${{ matrix.template }}
-          mode: full

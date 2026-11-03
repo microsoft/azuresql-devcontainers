@@ -2,7 +2,7 @@
 # Promises every change must keep, checked without Docker. Runs in CI's static job and in test/gauntlet.sh.
 #   M1 template ids, M2 target platform, M3 schema and seed (hash manifest), M7 LocalDev profile and port 1433,
 #   the compose shape (engine, native platform selection, healthcheck, resources), and CI integrity (S15: the workflow
-#   still runs the smoke test in full mode and still fails when it fails).
+#   always runs the smoke test with the database and still fails when it fails).
 # Needs jq, ruby (YAML), shasum, and the Dev Container CLI (JSONC). Usage: check-static.sh [repo-dir]
 set -euo pipefail
 
@@ -114,18 +114,18 @@ noSwallowedFailures() {
     [ -n "$runs" ] || return 2
     ! grep -nE '\|\||set[[:space:]]+\+[a-z]*e|exit[[:space:]]+0|;[[:space:]]*true' <<<"$runs"
 }
-# The smoke test step: every matrix entry runs the full stack, including arm64.
+# Every matrix entry uses the database-backed smoke test without mode overrides.
 smokeStep() {
     jq -e '[.jobs.test.steps[] | select(.uses == "./.github/actions/smoke-test")]
-        | length == 1 and .[0].with.template == "${{ matrix.template }}" and .[0].with.mode == "full"' "$tmp/workflow.json" >/dev/null
+        | length == 1 and .[0].with == {"template": "${{ matrix.template }}"}' "$tmp/workflow.json" >/dev/null
 }
 actionRuns() {
     local want
     # shellcheck disable=SC2016 # the literal run strings of the action
     want='["\"$GITHUB_ACTION_PATH/build.sh\" \"$TEMPLATE\"","\"$GITHUB_ACTION_PATH/test.sh\" \"$TEMPLATE\""]'
     [ "$(jq -c '[.runs.steps[].run]' "$tmp/action.json")" = "$want" ] || return 1
-    jq -e '.runs.steps | all(.env.MODE == "${{ inputs.mode }}" and .env.TEMPLATE == "${{ inputs.template }}")' "$tmp/action.json" >/dev/null || return 1
-    jq -e '.inputs.mode.default == "full"' "$tmp/action.json" >/dev/null
+    jq -e '(.inputs | keys) == ["template"]
+        and (.runs.steps | all(.env == {"TEMPLATE": "${{ inputs.template }}", "RUN_TAG": "ci"}))' "$tmp/action.json" >/dev/null
 }
 # The Pick step, executed: a pull request picks the changed templates; schedule and dispatch pick all four.
 pick() { # EVENT CHANGES -> templates JSON
@@ -195,7 +195,7 @@ expect "S15 triggers (PR, weekly, manual), permissions, amd64 and arm64 runners"
 expect "S15 only the two known job and step conditions" conditions
 expect "S15 no continue-on-error" noContinueOnError
 expect "S15 no step swallows a failure" noSwallowedFailures
-expect "S15 every matrix entry runs the smoke test in full mode on amd64 and arm64" smokeStep
+expect "S15 every matrix entry runs the database-backed smoke test on amd64 and arm64" smokeStep
 expect "S15 the smoke-test action runs build.sh and test.sh as they are" actionRuns
 expect "S15 the Pick step selects the changed templates, and all four on schedule and dispatch" pickStep
 expect "S15 the static job runs shellcheck, check-shared, check-forbidden, check-static, check-tags, check-startup" staticJob

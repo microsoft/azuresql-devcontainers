@@ -49,7 +49,7 @@ Both containers support native `linux/amd64` and `linux/arm64`, including Apple 
 
 ## Testing
 
-Every pull request that changes a template runs that template's full smoke test on amd64 and arm64 in GitHub Actions. The test applies the template, brings it up, and checks the Azure SQL engine identity, sample database, and language sample.
+Every pull request that changes a template runs that template's full smoke test on amd64 and arm64 in GitHub Actions. The test always builds and starts both the app and Azure SQL database containers, then checks the Azure SQL engine identity, sample database, and language sample. There is no database-free mode.
 
 To run the same checks on your machine, use `test/gauntlet.sh`. It needs Docker and the Dev Container CLI.
 

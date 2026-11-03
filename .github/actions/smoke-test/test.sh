@@ -24,4 +24,4 @@ $DEVCONTAINER exec --workspace-folder "$WS" \
     --remote-env "EXPECTED_ARCH=$EXPECTED_ARCH" \
     --remote-env "EXPECTED_DOTNET_MAJOR=$EXPECTED_DOTNET_MAJOR" \
     --remote-env "SMOKE_NO_NPM_REGISTRY=${SMOKE_NO_NPM_REGISTRY:-}" \
-    bash test-smoke/test.sh "$TEMPLATE_ID" "$MODE"
+    bash test-smoke/test.sh "$TEMPLATE_ID"

@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 # Smoke test for the dotnet and dotnet-aspire templates. Runs inside the dev container.
-# Usage: test.sh <template-id> [full|nodb]
+# Usage: test.sh <template-id>
 set -euo pipefail
 # shellcheck source=../test-utils/test-utils.sh
 source "$(dirname "$0")/test-utils.sh"
 TEMPLATE_ID=$1
-MODE=${2:-full}
 EXPECTED_TASKS="1. Verify database schema and data|2. Build SQL Database project|3. Publish SQL Database project|4. Trust .NET HTTPS certificate"
 
 # Task 4 as written, then the certificate must be valid and trusted.
@@ -23,8 +22,6 @@ if [ "$TEMPLATE_ID" = dotnet-aspire ]; then
     checkNative "S1/S2 native aspire" "$(command -v aspire)"
     checkMatches "S7 Aspire project templates installed" 'aspire-apphost' dotnet new list aspire
 fi
-if [ "$MODE" = full ]; then
-    checkDatabase
-    checkEquals "S7 SqlClient sample prints 24" 24 runSample
-fi
+checkDatabase
+checkEquals "S7 SqlClient sample prints 24" 24 runSample
 reportResults

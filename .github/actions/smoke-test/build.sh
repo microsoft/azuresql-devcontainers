@@ -23,7 +23,7 @@ if [ -n "$WS" ]; then rm -rf "$WS"; fi
 useWorkspace "$BASE-$(date +%Y%m%d%H%M%S)"
 mkdir -p "$WS"
 echo "$WS" >"$POINTER"
-echo "==> $TEMPLATE_ID ($IMAGE_VARIANT, $PLATFORM, $MODE) in $WS, compose project $PROJECT"
+echo "==> $TEMPLATE_ID ($IMAGE_VARIANT, $PLATFORM) in $WS, compose project $PROJECT"
 cp -R "$SRC_DIR/." "$WS/"
 
 # Option substitution, as `devcontainer templates apply` does. That command only takes published
@@ -67,22 +67,6 @@ if [ "$TEMPLATE_ID" = python ] && [ -n "${SMOKE_PIP_MIRROR:-}" ]; then
         -v "$WS/test-smoke:/smoke" "$base" \
         bash -c 'pip download -q --only-binary=:all: -d /smoke/wheels -r /smoke/requirements.txt && python /smoke/verify_wheels.py /smoke/wheels'
     REMOTE_ENV="--remote-env PIP_NO_INDEX=1 --remote-env PIP_FIND_LINKS=/workspace/test-smoke/wheels"
-fi
-
-if [ "$MODE" = nodb ]; then
-    # Optional tooling-only run: the db service becomes an idle native container,
-    # and postCreateCommand (which publishes to Azure SQL Database) is skipped.
-    cat >"$WS/.devcontainer/nodb.yml" <<EOF
-services:
-  db:
-    image: $(sed -n 's/^FROM //p' "$WS/.devcontainer/Dockerfile")
-    platform: $PLATFORM
-    command: sleep infinity
-    healthcheck:
-      test: ["CMD", "true"]
-      interval: 2s
-EOF
-    perl -0pi -e '$n += s/"dockerComposeFile": "docker-compose.yml"/"dockerComposeFile": ["docker-compose.yml", "nodb.yml"]/; $n += s/"postCreateCommand": "[^"]*"/"postCreateCommand": "true"/; END { exit($n == 2 ? 0 : 1) }' "$WS/.devcontainer/devcontainer.json"
 fi
 
 # S5 precondition: the dacpac can only come from this up.

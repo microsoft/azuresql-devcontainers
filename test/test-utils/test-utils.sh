@@ -106,7 +106,7 @@ azureTargetRejectsFixture() {
     [ "$rc" -ne 0 ] && grep -q "$S10_ERROR" <<<"$out"
 }
 
-# Checks that need no database: also available in optional app-only runs.
+# Tooling and SQL project checks.
 checkTools() { # EXPECTED-TASK-LABELS joined by |
     checkEquals "S1/S2 architecture" "$EXPECTED_ARCH" uname -m
     checkMatches "S6 sqlcmd v1.10.0" 'v?1\.10\.0' sqlcmd --version

@@ -149,8 +149,8 @@ layerControls() {
     }
     staticControl "check-static: test step failure swallowed" "FAILED: S15 no step swallows a failure" \
         "perl -pi -e 's#(run: .\"\\\$GITHUB_ACTION_PATH/test.sh\" \"\\\$TEMPLATE\")#\$1 |''| true#' .github/actions/smoke-test/action.yaml"
-    staticControl "check-static: both runners in nodb mode" "FAILED: S15 every matrix entry runs the smoke test" \
-        "perl -pi -e 's#mode: full#mode: nodb#' .github/workflows/test-pr.yaml"
+    staticControl "check-static: smoke action exposes a mode input" "FAILED: S15 the smoke-test action runs build.sh and test.sh as they are" \
+        "perl -pi -e 's#^inputs:#inputs:\\n  mode:\\n    default: tooling#' .github/actions/smoke-test/action.yaml"
     staticControl "check-static: test job disabled" "FAILED: S15 only the two known job and step conditions" \
         "perl -pi -e 's#if: needs.detect-changes.outputs.templates != .\\[\\].#if: false#' .github/workflows/test-pr.yaml"
     staticControl "check-static: Pick step selects nothing" "FAILED: S15 the Pick step selects" \
