@@ -4,8 +4,8 @@
 #
 # Optional environment:
 #   IMAGE_VARIANT  imageVariant to test (default: the template's default)
-#   PLATFORM       linux/amd64 or linux/arm64 for the app container (default: the Docker engine's)
-#   MODE           full (default) or nodb: app container only, for hosts that can't run SQL Server
+#   PLATFORM       linux/amd64 or linux/arm64 for both containers (default: the Docker engine's)
+#   MODE           full (default) or nodb: optional app-only tooling check
 #   RUN_TAG        part of the workspace and compose project name, so parallel CI jobs and local
 #                  runs never share a stack (default: local)
 #   WORK_ROOT      parent directory of the test workspace (default: $RUNNER_TEMP or /tmp)
@@ -51,11 +51,11 @@ useWorkspace() {
 WS="" PROJECT=""
 if [ -f "$POINTER" ]; then useWorkspace "$(cat "$POINTER")"; fi
 DEVCONTAINER=${DEVCONTAINER:-npx -y @devcontainers/cli@0.89.0}
-# Applies to the app image build; the db service pins its own platform.
+# Applies to both the app image build and the database image.
 export DOCKER_DEFAULT_PLATFORM=$PLATFORM
 
 # Removes this workspace's containers, volumes, network, and the app images built for it.
-# Touches nothing outside compose project $PROJECT; the shared SQL Server image stays.
+# Touches nothing outside compose project $PROJECT; the shared Azure SQL Database image stays.
 teardown() {
     local id images="" image
     [ -n "$PROJECT" ] || return 0

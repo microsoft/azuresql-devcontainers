@@ -24,7 +24,9 @@ jobs:
         run: test/test-utils/check-forbidden.sh
       - name: Template ids, target platform, schema, LocalDev, compose shape, and CI integrity
         run: test/test-utils/check-static.sh
-      - name: Every imageVariant proposal exists for amd64 and arm64
+      - name: Database startup ordering and failures
+        run: bash test/test-utils/check-startup.sh
+      - name: App and database images exist for amd64 and arm64
         run: test/test-utils/check-tags.sh
 
   detect-changes:
@@ -85,10 +87,9 @@ jobs:
         with:
           persist-credentials: false
 
-      # amd64 runs the full stack. arm64 has no emulation for the amd64-only SQL Server image, so it
-      # builds the app container and runs every check that needs no SQL Server.
+      # Both architectures run the full stack with the native Azure SQL Database image.
       - name: Smoke test '${{ matrix.template }}' on ${{ matrix.runner }}
         uses: ./.github/actions/smoke-test
         with:
           template: ${{ matrix.template }}
-          mode: ${{ matrix.runner == 'ubuntu-24.04-arm' && 'nodb' || 'full' }}
+          mode: full

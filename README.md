@@ -1,6 +1,6 @@
 # Azure SQL Database Dev Container templates
 
-Dev Container templates for building apps on Azure SQL Database. Each template gives you an app container for your language, a local SQL Server 2025 container, and a sample database defined in a SQL Database project that targets Azure SQL Database.
+Dev Container templates for building apps on Azure SQL Database. Each template gives you an app container for your language, a local Azure SQL Database developer container, and a sample database defined in a SQL Database project that targets Azure SQL Database.
 
 ![Inner loop in a dev container, outer loop in Azure](docs/images/azure-sql-database-dev-containers.png)
 
@@ -17,14 +17,16 @@ Dev Container templates for building apps on Azure SQL Database. Each template g
 
 Every template includes:
 
-- SQL Server 2025 from `mcr.microsoft.com/mssql/server:2025-latest`, Developer edition.
+- The Azure SQL Database developer container from `mcr.microsoft.com/mssql/azure-sql-db-server:latest`.
 - The `Library` sample database. It's built from the SQL Database project and published with SqlPackage when the container is created.
 - The .NET SDK (.NET 10; the `dotnet` template also offers .NET 8), SqlPackage, `sqlcmd` (go-sqlcmd), Azure CLI with Bicep, and the Azure Developer CLI.
 - VS Code tasks to verify the data and to build and publish the SQL Database project.
 
 ## How Azure SQL Database compatibility works
 
-The local engine is SQL Server 2025, not Azure SQL Database. The SQL Database project targets Azure SQL Database (`SqlAzureV12DatabaseSchemaProvider`), so its build fails if the schema uses anything Azure SQL Database doesn't support. The build is the compatibility check. The local engine is not.
+The local container runs the Azure SQL Database engine, not SQL Server Developer edition. The SQL Database project also targets Azure SQL Database (`SqlAzureV12DatabaseSchemaProvider`), so unsupported schema features fail the project build. After a successful build, the startup script provisions `Library` through `master`, then publishes directly to `Library`. The LocalDev profile and language samples connect to `Library`; application queries do not switch databases with `USE`.
+
+The container is for development, testing, and demos, not production. The preview has known restriction-enforcement gaps and defaults that can differ from Azure SQL Database in Azure. Validate against the cloud before shipping, and review the [upstream requirements and limitations](https://github.com/microsoft/azure-sql-database-container).
 
 ## Use a template
 
@@ -43,23 +45,21 @@ Each template's README covers the tasks, the sample database, and the password s
 
 ## Apple Silicon
 
-The app container runs natively on arm64. SQL Server 2025 has no arm64 image, so the SQL Server container runs as `linux/amd64` under emulation. Docker Desktop and OrbStack run it with Rosetta.
-
-Microsoft does not test or support SQL Server under emulation. See the [SQL Server 2025 on Linux release notes](https://learn.microsoft.com/sql/linux/sql-server-linux-release-notes-2025?view=sql-server-ver17). Podman on macOS is known to crash SQL Server 2025 ([microsoft/mssql-docker#943](https://github.com/microsoft/mssql-docker/issues/943)). GitHub Codespaces runs on x64 hosts, where SQL Server runs natively.
-
-SQL Server occasionally crashes while it starts, dumping core, and the container build then stops because the `db` service never becomes healthy. We saw it 1 start in 37 under emulation on an Apple Silicon Mac, and once on a native x64 GitHub Actions runner, so it is not specific to emulation. Run **Dev Containers: Rebuild Container** again, or restart the `db` container.
+Both containers support native `linux/amd64` and `linux/arm64`, including Apple Silicon. Compose selects the host architecture; the database service no longer forces amd64 emulation. Use Linux containers and allocate at least 4 GB of memory and 2 CPUs to the runtime. Each database service is limited to 2 GB and 2 CPUs. See the [upstream prerequisites](https://github.com/microsoft/azure-sql-database-container/blob/main/docs/prerequisites.md).
 
 ## Testing
 
-Every pull request that changes a template runs that template's smoke test in GitHub Actions. The test applies the template, brings it up, and checks the sample database and the language sample.
+Every pull request that changes a template runs that template's full smoke test on amd64 and arm64 in GitHub Actions. The test applies the template, brings it up, and checks the Azure SQL engine identity, sample database, and language sample.
 
 To run the same checks on your machine, use `test/gauntlet.sh`. It needs Docker and the Dev Container CLI.
+
+For startup sequencing and failure-handling checks without Docker, run `bash test/test-utils/check-startup.sh`. These use command doubles, not a running engine. `test/test-utils/check-tags.sh` checks that the configured app and database image tags expose both native architectures.
 
 ## Learn more
 
 - [What are SQL database projects?](https://learn.microsoft.com/sql/tools/sql-database-projects/sql-database-projects?view=sql-server-ver17)
 - [Target platform for SQL database projects](https://learn.microsoft.com/sql/tools/sql-database-projects/concepts/target-platform?view=sql-server-ver17)
-- [SQL Server Linux containers](https://learn.microsoft.com/sql/linux/install-upgrade/quickstart-install-docker?view=sql-server-ver17)
+- [Azure SQL Database container](https://github.com/microsoft/azure-sql-database-container)
 - [Dev Container templates specification](https://containers.dev/implementors/templates/)
 
 ## Contributing and feedback

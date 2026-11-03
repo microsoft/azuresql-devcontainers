@@ -11,7 +11,7 @@ source "$(dirname "$0")/common.sh"
 onExit() {
     local rc=$?
     if [ "$rc" -ne 0 ]; then
-        echo "build.sh: failed (exit $rc). Last SQL Server log lines, then teardown:" >&2
+        echo "build.sh: failed (exit $rc). Last Azure SQL Database log lines, then teardown:" >&2
         if [ -n "$PROJECT" ]; then docker compose -p "$PROJECT" logs --no-color --tail 15 db >&2 || echo "(no db logs)" >&2; fi
         teardown
     fi
@@ -70,8 +70,8 @@ if [ "$TEMPLATE_ID" = python ] && [ -n "${SMOKE_PIP_MIRROR:-}" ]; then
 fi
 
 if [ "$MODE" = nodb ]; then
-    # No SQL Server on this host (arm64 CI has no amd64 emulation): the db service becomes an idle
-    # native container, and postCreateCommand (which publishes to SQL Server) is skipped.
+    # Optional tooling-only run: the db service becomes an idle native container,
+    # and postCreateCommand (which publishes to Azure SQL Database) is skipped.
     cat >"$WS/.devcontainer/nodb.yml" <<EOF
 services:
   db:

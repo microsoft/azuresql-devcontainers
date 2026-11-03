@@ -2,7 +2,7 @@
 -- Licensed under the MIT License.
 
 -- Verifying database
-select * from library.dbo.authors;
+select * from dbo.authors;
 GO
-select * from library.dbo.books;
+select * from dbo.books;
 GO

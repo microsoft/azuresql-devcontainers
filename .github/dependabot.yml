@@ -11,8 +11,8 @@ updates:
       interval: "weekly"
 
   # The db service image in each template's docker-compose.yml
-  # (mcr.microsoft.com/mssql/server:2025-latest). 2025-latest is a moving tag,
-  # so this entry may open no PRs until the image is pinned to a CU tag.
+  # (mcr.microsoft.com/mssql/azure-sql-db-server:latest). latest is a moving tag,
+  # so this entry may open no PRs until the image is pinned to a versioned tag.
   - package-ecosystem: "docker-compose"
     directories:
       - "/src/dotnet/.devcontainer"

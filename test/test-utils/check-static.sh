@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Promises every change must keep, checked without Docker. Runs in CI's static job and in test/gauntlet.sh.
 #   M1 template ids, M2 target platform, M3 schema and seed (hash manifest), M7 LocalDev profile and port 1433,
-#   the compose shape (engine, platform, edition, healthcheck, resources), and CI integrity (S15: the workflow
+#   the compose shape (engine, native platform selection, healthcheck, resources), and CI integrity (S15: the workflow
 #   still runs the smoke test in full mode and still fails when it fails).
 # Needs jq, ruby (YAML), shasum, and the Dev Container CLI (JSONC). Usage: check-static.sh [repo-dir]
 set -euo pipefail
@@ -68,24 +68,27 @@ localDev() { # TEMPLATE
             | .password == "${containerEnv:MSSQL_SA_PASSWORD}" and .savePassword == true)
         and (.forwardPorts | index(1433))
         and (.customizations.vscode.extensions | index("ms-mssql.mssql"))
-        and any(.customizations.vscode.settings."mssql.connections"[]; .profileName == "LocalDev" and .server == "localhost,1433")' \
+        and any(.customizations.vscode.settings."mssql.connections"[]; .profileName == "LocalDev" and .server == "localhost,1433" and .database == "Library")' \
         "$tmp/config-$1.json" >/dev/null
 }
 composeShape() { # TEMPLATE
     yaml2json "src/$1/.devcontainer/docker-compose.yml" | jq -e '(has("version") | not)
-        and .services.db.image == "mcr.microsoft.com/mssql/server:2025-latest"
-        and .services.db.platform == "linux/amd64"
-        and .services.db.environment.MSSQL_PID == "EnterpriseDeveloper"
+        and .services.db.image == "mcr.microsoft.com/mssql/azure-sql-db-server:latest"
+        and (.services.db | has("platform") | not)
+        and .services.db.environment == {"ACCEPT_EULA": "Y"}
+        and .services.db.env_file == [".env"]
         and .services.db.restart == "unless-stopped"
         and (.services.db.healthcheck.test | tostring | contains("/opt/mssql-tools18/bin/sqlcmd"))
+        and (.services.db.healthcheck.test | tostring | contains("-d master"))
         and .services.db.deploy.resources.limits == {"cpus": "2", "memory": "2048M"}
         and (.services.db | has("container_name") | not)
         and .services.app.depends_on.db.condition == "service_healthy"
+        and .services.app.env_file == [".env"]
         and .services.app.network_mode == "service:db"' >/dev/null
 }
 for t in $TEMPLATES; do
-    expect "M7/S18 $t: LocalDev profile resolves the .env password from containerEnv on localhost,1433, port 1433, ms-mssql.mssql" localDev "$t"
-    expect "compose $t: SQL Server 2025 Enterprise Developer, amd64, restart, healthcheck, 2 CPU/2048M, app waits for healthy" composeShape "$t"
+    expect "M7/S18 $t: LocalDev targets Library with the .env password from containerEnv on localhost,1433, port 1433, ms-mssql.mssql" localDev "$t"
+    expect "compose $t: Azure SQL Database, native architecture, EULA, restart, healthcheck, 2 CPU/2048M, app waits for healthy" composeShape "$t"
 done
 
 # --- S15: CI integrity ----------------------------------------------------------------------------------------
@@ -111,11 +114,10 @@ noSwallowedFailures() {
     [ -n "$runs" ] || return 2
     ! grep -nE '\|\||set[[:space:]]+\+[a-z]*e|exit[[:space:]]+0|;[[:space:]]*true' <<<"$runs"
 }
-# The smoke test step: every matrix entry runs it, and ubuntu-latest runs the full stack.
+# The smoke test step: every matrix entry runs the full stack, including arm64.
 smokeStep() {
-    jq -e --arg mode "\${{ matrix.runner == 'ubuntu-24.04-arm' && 'nodb' || 'full' }}" \
-        '[.jobs.test.steps[] | select(.uses == "./.github/actions/smoke-test")]
-        | length == 1 and .[0].with.template == "${{ matrix.template }}" and .[0].with.mode == $mode' "$tmp/workflow.json" >/dev/null
+    jq -e '[.jobs.test.steps[] | select(.uses == "./.github/actions/smoke-test")]
+        | length == 1 and .[0].with.template == "${{ matrix.template }}" and .[0].with.mode == "full"' "$tmp/workflow.json" >/dev/null
 }
 actionRuns() {
     local want
@@ -145,7 +147,7 @@ pickStep() {
 staticJob() {
     local runs
     runs=$(jq -r '.jobs.static.steps[].run // empty' "$tmp/workflow.json")
-    for gate in "shellcheck -x -P SCRIPTDIR" test/test-utils/check-shared.sh test/test-utils/check-forbidden.sh test/test-utils/check-static.sh test/test-utils/check-tags.sh; do
+    for gate in "shellcheck -x -P SCRIPTDIR" test/test-utils/check-shared.sh test/test-utils/check-forbidden.sh test/test-utils/check-static.sh test/test-utils/check-tags.sh "bash test/test-utils/check-startup.sh"; do
         grep -qF -- "$gate" <<<"$runs" || { echo "static job does not run $gate" >&2; return 1; }
     done
 }
@@ -193,10 +195,10 @@ expect "S15 triggers (PR, weekly, manual), permissions, amd64 and arm64 runners"
 expect "S15 only the two known job and step conditions" conditions
 expect "S15 no continue-on-error" noContinueOnError
 expect "S15 no step swallows a failure" noSwallowedFailures
-expect "S15 every matrix entry runs the smoke test; ubuntu-latest runs the full stack" smokeStep
+expect "S15 every matrix entry runs the smoke test in full mode on amd64 and arm64" smokeStep
 expect "S15 the smoke-test action runs build.sh and test.sh as they are" actionRuns
 expect "S15 the Pick step selects the changed templates, and all four on schedule and dispatch" pickStep
-expect "S15 the static job runs shellcheck, check-shared, check-forbidden, check-static, check-tags" staticJob
+expect "S15 the static job runs shellcheck, check-shared, check-forbidden, check-static, check-tags, check-startup" staticJob
 expect "S15 paths filter: own, shared, and unrelated files (13 paths)" pathsFilter
 expect "mirror wheels are verified before pip may use them" wheelsVerified
 

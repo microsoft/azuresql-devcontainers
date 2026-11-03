@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds the Library SQL Database project and publishes it to the local SQL Server.
+# Builds the SQL Database project, provisions Library, and publishes to Azure SQL Database.
 # Runs when the container is created, and from the "3. Publish SQL Database project" task.
 set -euo pipefail
 
@@ -13,17 +13,30 @@ cd "$(dirname "$0")/../.."
 : "${MSSQL_SA_PASSWORD:?is not set; it comes from .devcontainer/.env}"
 export SQLCMDPASSWORD=$MSSQL_SA_PASSWORD
 
-step="wait for SQL Server at localhost,1433"
+waitForDatabase() {
+    local database=$1 attempt
+    for attempt in 1 2 3 4 5 6 7 8 9 10; do
+        if sqlcmd -S localhost -d "$database" -U sa -C -l 5 -b -Q "SELECT 1" >/dev/null; then return; fi
+        if [ "$attempt" -eq 10 ]; then return 1; fi
+        sleep 3
+    done
+}
+
+step="wait for Azure SQL Database at localhost,1433"
 echo "==> $step"
-for attempt in 1 2 3 4 5 6 7 8 9 10; do
-    if sqlcmd -S localhost -U sa -C -l 5 -b -Q "SELECT 1" >/dev/null; then break; fi
-    if [ "$attempt" -eq 10 ]; then exit 1; fi
-    sleep 3
-done
+waitForDatabase master
 
 step="build database/Library"
 echo "==> $step"
 dotnet build database/Library -nodeReuse:false
+
+step="provision Library through master"
+echo "==> $step"
+sqlcmd -S localhost -d master -U sa -C -b -Q "IF DB_ID('Library') IS NULL CREATE DATABASE [Library];"
+
+step="wait for Library"
+echo "==> $step"
+waitForDatabase Library
 
 step="publish database/Library/bin/Debug/Library.dacpac to the Library database"
 echo "==> $step"

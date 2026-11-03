@@ -5,7 +5,7 @@ inputs:
     description: 'Template id, for example python'
     required: true
   mode:
-    description: 'full, or nodb for hosts that cannot run the amd64 SQL Server container'
+    description: 'full (both containers), or nodb for optional app-only tooling checks'
     required: false
     default: 'full'
 

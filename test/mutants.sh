@@ -21,16 +21,16 @@ mkdir -p "$OUT"
 # id | file | check that must fail | text | replacement (last, so it may contain |)
 MUTANTS='seed-row|src/python/database/Library/postDeployment.sql|S5 24 books_authors|IF NOT EXISTS (SELECT 1 FROM dbo.books_authors WHERE author_id = 5 AND book_id = 1023)|IF 1 = 0
 no-publish|src/python/.devcontainer/sql/postCreateCommand.sh|S5 5 authors|sqlpackage /Action:Publish|true /Action:Publish
-engine-2022|src/python/.devcontainer/docker-compose.yml|S4 engine major version 17|mssql/server:2025-latest;;MSSQL_PID: EnterpriseDeveloper|mssql/server:2022-latest;;MSSQL_PID: Developer
-edition-express|src/python/.devcontainer/docker-compose.yml|S4 edition|MSSQL_PID: EnterpriseDeveloper|MSSQL_PID: Express
+engine-sqlserver|src/python/.devcontainer/docker-compose.yml|S4 Azure SQL engine edition|mssql/azure-sql-db-server:latest|mssql/server:2025-latest
 target-sql170|src/python/database/Library/Library.sqlproj|S10 Azure target rejects fixture|SqlAzureV12DatabaseSchemaProvider|Sql170DatabaseSchemaProvider
 sample-query|test/python/test_sql_connection.py|S7 mssql-python sample prints 24|FROM dbo.books|FROM dbo.authors
-unbounded-wait|src/python/.devcontainer/sql/postCreateCommand.sh|S11 wrong password fails loudly|if [ "$attempt" -eq 10 ]; then exit 1; fi|if [ "$attempt" -eq 10 ]; then break; fi
+unbounded-wait|src/python/.devcontainer/sql/postCreateCommand.sh|S11 wrong password fails loudly|if [ "$attempt" -eq 10 ]; then return 1; fi|if [ "$attempt" -eq 10 ]; then break; fi
 sqlcmd-wrong-arch|src/python/.devcontainer/sql/installSQLtools.sh|S1/S2 native sqlcmd|arch=$(dpkg --print-architecture)|arch=amd64
 build-failure-ignored|src/python/.devcontainer/sql/postCreateCommand.sh|S16 a failed build is never published|dotnet build database/Library|dotnet build database/Library || true
 outputs-removed-after-up|src/python/.devcontainer/sql/postCreateCommand.sh|S5 dacpac built during this up|/TargetTrustServerCertificate:True|/TargetTrustServerCertificate:True && rm -rf database/Library/bin database/Library/obj
 task2-wrong-cwd|src/python/.vscode/tasks.json|S17 task 2 builds the project|"cwd": "${workspaceFolder}/database/Library"|"cwd": "${workspaceFolder}"
-profile-placeholder|src/python/.devcontainer/devcontainer.json|S18 the LocalDev profile authenticates|"password": "${containerEnv:MSSQL_SA_PASSWORD}"|"password": "${env:MSSQL_SA_PASSWORD}"'
+profile-placeholder|src/python/.devcontainer/devcontainer.json|S18 the LocalDev profile authenticates|"password": "${containerEnv:MSSQL_SA_PASSWORD}"|"password": "${env:MSSQL_SA_PASSWORD}"
+profile-master|src/python/.devcontainer/devcontainer.json|S18 the LocalDev profile authenticates|"database": "Library"|"database": "master"'
 
 total=0 killed=0
 while IFS='|' read -r id file check from to <&3; do
